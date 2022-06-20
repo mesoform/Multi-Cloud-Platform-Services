@@ -269,10 +269,9 @@ components:
 ```
 
 ## Contributing
-
-Please read [CONTRIBUTING.md](https://github.com/mesoform/terraform-infrastructure-modules/blob/master/CONTRIBUTING.md) for the process for submitting pull requests.
+Please read:
+* [CONTRIBUTING.md](https://github.com/mesoform/documentation/blob/master/CONTRIBUTING.md)
+* [CODE_OF_CONDUCT.md](https://github.com/mesoform/documentation/blob/master/CODE_OF_CONDUCT.md)
 
 ## License
-
 This project is licensed under the [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
-
