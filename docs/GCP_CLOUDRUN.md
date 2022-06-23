@@ -10,27 +10,27 @@ If using an existing project you can use an image hosted within the projects Con
 provided you have the correct IAM permissions to access it.  
 
 #### Cloud run specs
-| Key | Type | Required | Description | Default |
-|:----|:----:|:--------:|:------------|:-------:|
-| `project_id` | string | true | The ID of the project to be used for the service | none |
-| `location_id` | string | true | Location ID of the project used| none |
-| `create_google_project` | bool | false | Whether to create a new project for services| false |
-| `billing_account` | string | true if `create_google_project` is true | The alphanumeric ID of the billing account this project belongs to. | none |
-| `create_artiface_registry` | bool | false | whether to create an artifact registry repository| false |
-| `name` | string | true | Name for Cloud Run Service, unique within cloud run region and cannot be updated | none |
-| `image_uri` | string | true | URI of where the image to be hosted is contained | none |
-| `auth` | bool | true | Whether authentication is required to access service| false |
-| `environment_vars` | map | false | Any environment variables to include as for image. Key is the name of the variable and value is the string it represents| none |
-| `iam` | map | true if `auth = true` | If authentication is required to access the service, include the iam block| false |
-| `iam.binding` | map | true if `replace_policy = true`, otherwise include if you want to update bindings | A block of roles and the members who will be assigned the roles. Keys should be the role, and the value for each key is the list of members assigned that role| none |
+| Key                           | Type | Required | Description | Default |
+|:------------------------------|:----:|:--------:|:------------|:-------:|
+| `project_id`                  | string | true | The ID of the project to be used for the service | none |
+| `location_id`                 | string | true | Location ID of the project used| none |
+| `create_google_project`       | bool | false | Whether to create a new project for services| false |
+| `billing_account`             | string | true if `create_google_project` is true | The alphanumeric ID of the billing account this project belongs to. | none |
+| `create_artiface_registry`    | bool | false | whether to create an artifact registry repository| false |
+| `name`                        | string | true | Name for Cloud Run Service, unique within cloud run region and cannot be updated | none |
+| `image`                       | string | true | URI of where the image to be hosted is contained | none |
+| `auth`                        | bool | true | Whether authentication is required to access service| false |
+| `environment_vars`            | map | false | Any environment variables to include as for image. Key is the name of the variable and value is the string it represents| none |
+| `iam`                         | map | true if `auth = true` | If authentication is required to access the service, include the iam block| false |
+| `iam.binding`                 | map | true if `replace_policy = true`, otherwise include if you want to update bindings | A block of roles and the members who will be assigned the roles. Keys should be the role, and the value for each key is the list of members assigned that role| none |
 | `iam.bindings.[role].members` | list | true if `iam.bindings` has values| Members who will be assigned the role for the iam policy [details](#IAM Usage)| none |
-| `iam.replace_policy` | bool | false | Sets IAM policy, replacing any existing policy attached| true |
-| `iam.binding` | bool | false | Updates IAM policy to grant role to specified members| false |
-| `iam.add_member` | map | false | Adds a member who can can use a specified policy. If a binding policy exists the policy for `add_member` must be different. This must include the keys `role` and `member`, with `member` following the same format as an item in `iam.members`| none |
-| `domain_name` | string | false | Custom domain name for service, domain must already exist| none |
-| `traffic` | list | false | list of traffic allocation configs across revisions | 100% traffic to latest revision |
-| `traffic.-.percent` | map | true if `traffic.-` exists | The percentage of traffic for revision, if `revision_name` is not specified latest revision is used| none |
-| `traffic.-.revision_name` | string | false | The name of the revision the traffic should be allocated to | 'latest_revision' is set to true if this key is not present  |
+| `iam.replace_policy`          | bool | false | Sets IAM policy, replacing any existing policy attached| true |
+| `iam.binding`                 | bool | false | Updates IAM policy to grant role to specified members| false |
+| `iam.add_member`              | map | false | Adds a member who can can use a specified policy. If a binding policy exists the policy for `add_member` must be different. This must include the keys `role` and `member`, with `member` following the same format as an item in `iam.members`| none |
+| `domain_name`                 | string | false | Custom domain name for service, domain must already exist| none |
+| `traffic`                     | list | false | list of traffic allocation configs across revisions | 100% traffic to latest revision |
+| `traffic.-.percent`           | map | true if `traffic.-` exists | The percentage of traffic for revision, if `revision_name` is not specified latest revision is used| none |
+| `traffic.-.revision_name`     | string | false | The name of the revision the traffic should be allocated to | 'latest_revision' is set to true if this key is not present  |
 
 #### IAM Settings
 ##### Policy/Member Settings
@@ -50,6 +50,60 @@ Similarly, if there are existing role bindings, which you would like to add a me
 * `"domain:{domain}"`
 
 More information can be found in the terraform [documentation](https://www.terraform.io/docs/providers/google/r/cloud_run_service_iam.html).
+
+## Secrets
+Secrets can be attached to the cloudrun service either as environment variables or mounted as volumes.
+To create new secrets `create_secrets` should be true in `gcp_cloudrun.yml`,
+and the secrets should be defined in `gcp_cloudrun_secrets.yml` file in the same directory as the main cloudrun configuration file.
+If `create_secrets` is false, and `gcp_cloudrun_secrets.yml` has secrets, a new version of an existing secret will be created.  
+The structure of the file should be:
+```yaml
+secret_1:
+  secret_data: "secret-value"
+  labels: # Optional
+    label1: label-value
+  project: project # Optional - If different from cloudrun project
+  replicas: # Optional - Only required if not using automatic replication
+    location: region # Optional - If different from cloudrun location
+#    project: project  # Optional - If different from cloudrun project
+     kms_key_name: kms-key # Optional - If using customer_managed_encryption KMS encryption key used for protecting secret
+  topics: # Optional - Pub/Sub Topics to publish messages about control plane operations on secrets/versions
+    - projects/project/topics/topic1
+    - projects/project/topics/topic2
+  expire_time: 2022-10-02T15:01:23Z # Optional - Timestamp in UTC 
+  ttl: 5.5s #Optional - TTL for secret in seconds
+  rotation: # Optional - Rotational period of secrets
+    next_rotation_time: 2022-10-02T15:01:23Z # Required if Next rotation_period is setm otherwise optional - Timestamp in UTC for time secret is scheduled to rotate
+    rotation_period: 3600s # Optional - duration between rotation notifications in seconds 
+secret_2:
+  secret_data: "secret-value"
+```
+
+To attach these secrets to the cloudrun instance they should be defined in a `secrets` block in `gcp_cloudrun.yml` in the section for the app
+To mount the secret as a volume specify the `mount_location`, to add as an environment variable specify `env_name`.
+If the secret is from a different project then cloudrun, that should be specified in `project` key.  
+Example:
+```yaml
+components:
+  specs:
+    app1:
+      name: "app1"
+      ...
+      secrets:
+        secret_1:
+          version: 1 #integer version value, defaults to "latest"
+          mount_location: /mount/location/ #path to mount the secret volume to
+          file_name: secret_file.txt #optional - file name of secret, defaults to secret name
+          env_name: SECRET_ENV_1
+          project: AnotherProject
+        secret_2:
+          version: 2
+          env_name: SECRET_ENV_2
+        secret_3:
+          version: 1
+          mount_location: "/mount/location/"
+```
+
 
 ## Multiple Versions
 By default the revision name for a Cloud Run deployment is auto-generated. 
@@ -119,6 +173,13 @@ components:
           environment_vars:
             'EG': 'something'
             'EG2': 'something-else'
+      secrets:
+        secret_1:
+          version: v1
+          mount_location: /etc/
+        secret_2:
+          version: v2
+          env_name: SECRET VALUE
       auth: true
       iam:
         replace_policy: true

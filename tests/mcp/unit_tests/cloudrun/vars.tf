@@ -16,3 +16,8 @@ variable gcp_cloudrun_traffic_yml {
 variable gcp_cloudrun_traffic {
   default = null
 }
+variable gcp_cloudrun_secrets_yml {
+  description = "Path to YAML file containing traffic configuration for Cloud Run "
+  type        = string
+  default     = "resources/gcp_cloudrun_secrets.yml"
+}
