@@ -3,7 +3,7 @@
 * [Information](#Information)  
 * [Structure](#Structure)     
 * [Setup](#Setup)
-* [MMCF](#MMCF)  
+* [MCCF](#MCCF)  
 * [project.yml](#projectyml)      
 * [Google Cloud Platform Adapters](#google-cloud-platform)  
     * [App Engine](docs/GCP_APP_ENGINE.md)  
@@ -13,8 +13,8 @@
 * [License](#License)  
 
 ## Information
-Converter module for transforming MMCF (Mesoform Multi-Cloud Configuration Format) YAML into values
- for deploying to given target platform
+Converter module for transforming Mesoform's MCCF (Multi-Cloud Configuration Format) YAML into values
+ for deploying to a given target platform.
 
 
 ## Structure
@@ -26,7 +26,7 @@ a deployment description and define things like scaling, runtime settings, AS co
 other resource settings for the specific target platform.
 
 If your application is made up of a number of microservices, you can structure such Component AS
-(CAS) source code files and resources into sub-directories. Then, in the MMCF file, the deployment
+(CAS) source code files and resources into sub-directories. Then, in the MCCF file, the deployment
 configuration for each CAS each will have its own definition in the `specs` section (described
 below). For example,
 
@@ -46,7 +46,7 @@ Specifications for different target platforms can be found below
 
 ## Setup
 To use the MCP modules to deploy your service, download the `mcpadm.sh` (Linux or Mac), or `mcpadm.ps1` (Windows), 
-and run the setup within a `/terraform` sub-directory of your service. 
+and run the setup within a `/terraform` subdirectory of your service. 
 
 ```
 mesoform-service/
@@ -82,8 +82,8 @@ Run `mcpadm.sh setup -help` for more setup options.
 
 The `mcpadm` scripts can also get, deploy and destroy terraform infrastructure, as well as configure workspaces for management of multiple service versions.
 
-## MMCF
-MMCF is a YAML-based configuration allowing for simple mapping of platform APIs for deploying
+## MCCF
+MCCF is a YAML-based configuration allowing for simple mapping of platform APIs for deploying
  applications. It follows the YAML 1.2 specification. For example, YAML anchors can be used to
  reference values from other fields. For example, if you wanted `service` to be the same as name,
  would write:
@@ -116,10 +116,10 @@ components:
 
 `service` will evaluate to `ecat-admin`
 
-The following sections describe how to use MMCF for different target platforms. In each section, any
+The following sections describe how to use MCCF for different target platforms. In each section, any
  required settings are stated so. Everything else is optional. Any defaults that are set within
- MMCF are stated for each individual setting but this doesn't mean that you may not get some default
- set by the target platform. All expected settings, with their defaults from MMCF and the target
+ MCCF are stated for each individual setting but this doesn't mean that you may not get some default
+ set by the target platform. All expected settings, with their defaults from MCCF and the target
  platform will be output. Refer to the target platform's documentation for specifics
 
 
