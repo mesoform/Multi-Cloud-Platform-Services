@@ -2,16 +2,7 @@
 //noinspection HILUnresolvedReference
 data "google_project" "default" {
   count      = local.cloudrun == {} || lookup(local.cloudrun, "create_google_project", false) ? 0 : 1
-  project_id = lookup(local.cloudrun, "project_id", "")
-}
-
-//noinspection HILUnresolvedReference
-data "google_secret_manager_secret" "self" {
-  depends_on = [google_secret_manager_secret.self]
-  provider = google-beta
-  for_each = !lookup(local.cloudrun, "create_secrets", false) ? local.cloudrun_secrets : {}
-  secret_id = each.key
-  project = lookup(each.value, "project", null) == null ? lookup(local.cloudrun, "create_google_project", false) ? google_project.default[0].project_id : data.google_project.default[0].project_id : each.value.project
+  project_id = local.cloudrun["project_id"]
 }
 
 resource "google_project_service" "iam" {
@@ -33,6 +24,22 @@ resource "google_project_service" "cloudrun" {
   project            = lookup(local.cloudrun, "create_google_project", false) ? google_project.default[0].project_id : data.google_project.default[0].project_id
   service            = "run.googleapis.com"
   disable_on_destroy = false
+  disable_dependent_services = false
+}
+
+resource "google_project_service" "secret_manager" {
+  for_each = nonsensitive(local.secret_projects)
+  service = "secretmanager.googleapis.com"
+  project = each.value
+  disable_on_destroy = false
+}
+
+//noinspection HILUnresolvedReference
+data "google_secret_manager_secret" "self" {
+  provider = google-beta
+  for_each = nonsensitive(local.cloudrun_secrets_existing)
+  secret_id = each.key
+  project = lookup(each.value, "project", null) == null ? local.cloudrun["project_id"] : each.value.project
 }
 
 //noinspection HILUnresolvedReference,ConflictingProperties
@@ -44,61 +51,6 @@ resource "google_project" "default" {
   folder_id       = lookup(local.cloudrun, "folder_id", null) == null ? null : local.gae.folder_id
   labels          = merge(lookup(local.project, "labels", {}), lookup(local.gae, "project_labels", {}))
   billing_account = lookup(local.cloudrun, "billing_account", null)
-}
-
-//noinspection HILUnresolvedReference
-resource "google_secret_manager_secret" "self" {
-  provider = google-beta
-  for_each = lookup(local.cloudrun, "create_secrets", false) ? local.cloudrun_secrets : {}
-  secret_id = each.key
-  project = lookup(each.value, "project", null) == null ? lookup(local.cloudrun, "create_google_project", false) ? google_project.default[0].project_id : data.google_project.default[0].project_id : each.value.project
-  labels = lookup(each.value, "labels", null )
-  expire_time = lookup(each.value, "expire_time", null )
-  ttl = lookup(each.value, "ttl", null )
-  replication {
-    automatic = !lookup(each.value, "replicas", false) #If "replias" is present automatic should be false
-    //noinspection HILUnresolvedReference
-    dynamic user_managed {
-      for_each = lookup(each.value, "replicas", false) ? each.value.replicas : {}
-      content {
-        //noinspection HILUnresolvedReference
-        replicas {
-          location = lookup(user_managed.value, "location", local.cloudrun.location_id )
-          dynamic customer_managed_encryption {
-            for_each = lookup(user_managed.value, "kms_key_name", {} )
-            content = {
-              kms_key_name = customer_managed_encryption.value
-            }
-          }
-        }
-      }
-    }
-  }
-  //noinspection HILUnresolvedReference
-  dynamic topics {
-    for_each = lookup(each.value, "topic", null) == null ? {} : {for topic in each.value.topics: topic => {name = topic}}
-    //noinspection HILUnresolvedReference
-    content {
-      name = topics.value.name
-    }
-  }
-  //noinspection HILUnresolvedReference
-  dynamic "rotation" {
-    for_each = lookup(each.value, "rotation", null) ? {} : {rotation = each.value.rotation}
-    content {
-      next_rotation_time = lookup(rotation.value, "next_rotation_time", null)
-      rotation_period = lookup(rotation.value, "rotation_period", null)
-    }
-  }
-
-}
-
-//noinspection HILUnresolvedReference
-resource "google_secret_manager_secret_version" "self" {
-  provider = google-beta
-  for_each = local.cloudrun_secrets
-  secret = lookup(local.cloudrun, "create_secrets", false) ? google_secret_manager_secret.self[each.key].name : data.google_secret_manager_secret.self[each.key].name
-  secret_data = each.value.secret_data
 }
 
 //noinspection HILUnresolvedReference
@@ -167,10 +119,10 @@ resource "google_cloud_run_service" "self" {
             value = env.value
           }
         }
-        dynamic "env" { #secret environmnet variables
+        dynamic "env" { # secret environment variables
           for_each = local.cloudrun_secrets_env[each.key]
           content {
-            name = env.key
+            name = env.value["env_name"]
             value_from {
               secret_key_ref {
                 name  = env.key
@@ -182,7 +134,7 @@ resource "google_cloud_run_service" "self" {
         dynamic "volume_mounts" {
           for_each = local.cloudrun_secrets_mount[each.key]
           content {
-            name = "${volume_mounts.key}-secret-volume"
+            name = "${volume_mounts.key}_secret_volume"
             mount_path = volume_mounts.value.mount_location
           }
         }
@@ -190,10 +142,9 @@ resource "google_cloud_run_service" "self" {
       dynamic "volumes"{
         for_each = local.cloudrun_secrets_mount[each.key]
         content {
-          name = "${volumes.key}-secret-volume"
+          name = "${volumes.key}_secret_volume"
           secret {
             secret_name = volumes.key
-            default_mode = ""
             items {
               key  = lookup(volumes.value, "version", "latest" )
               path = lookup(volumes.value, "file_name", volumes.key)
@@ -289,13 +240,65 @@ resource "google_cloud_run_service_iam_member" "self" {
 }
 
 //noinspection HILUnresolvedReference
-resource "google_cloud_run_domain_mapping" "self" {
-  for_each = {
-    for key, specs in local.cloudrun_specs : key => specs
-      if lookup(local.cloudrun_specs[key], "domain", null) != null
+resource "google_secret_manager_secret" "self" {
+  provider = google-beta
+  depends_on = [google_project_service.secret_manager]
+  for_each = nonsensitive(local.cloudrun_secrets_create)
+  secret_id = each.key
+  project = lookup(each.value, "project", null) == null ? lookup(local.cloudrun, "create_google_project", false) ? google_project.default[0].project_id : data.google_project.default[0].project_id : each.value.project
+  labels = lookup(each.value, "labels", null )
+  expire_time = lookup(each.value, "expire_time", null )
+  ttl = lookup(each.value, "ttl", null )
+  replication {
+    automatic = !lookup(each.value, "replicas", false) #If "replias" is present automatic should be false
+    //noinspection HILUnresolvedReference
+    dynamic user_managed {
+      for_each = lookup(each.value, "replicas", false) ? each.value.replicas : {}
+      content {
+        //noinspection HILUnresolvedReference
+        replicas {
+          location = lookup(user_managed.value, "location", local.cloudrun.location_id )
+          dynamic customer_managed_encryption {
+            for_each = lookup(user_managed.value, "kms_key_name", {} )
+            content {
+              kms_key_name = customer_managed_encryption.value
+            }
+          }
+        }
+      }
+    }
   }
+  //noinspection HILUnresolvedReference
+  dynamic topics {
+    for_each = lookup(each.value, "topic", null) == null ? {} : {for topic in each.value.topics: topic => {name = topic}}
+    //noinspection HILUnresolvedReference
+    content {
+      name = topics.value.name
+    }
+  }
+  //noinspection HILUnresolvedReference
+  dynamic "rotation" {
+    for_each = lookup(each.value, "rotation", null) == null ? {} : {rotation = each.value.rotation}
+    content {
+      next_rotation_time = lookup(rotation.value, "next_rotation_time", null)
+      rotation_period = lookup(rotation.value, "rotation_period", null)
+    }
+  }
+}
+
+//noinspection HILUnresolvedReference
+resource "google_secret_manager_secret_version" "self" {
+  provider = google-beta
+  for_each = nonsensitive(merge(local.cloudrun_secrets_create, local.cloudrun_secrets_existing))
+  secret = try(google_secret_manager_secret.self[each.key].id, data.google_secret_manager_secret.self[each.key].id)
+  secret_data = local.cloudrun_secrets[each.key].secret_data
+}
+
+//noinspection HILUnresolvedReference
+resource "google_cloud_run_domain_mapping" "self" {
+  for_each = local.cloudrun_domains
   location = google_cloud_run_service.self[each.key].location
-  name     = lookup(local.cloudrun_specs[each.key], "domain", "")
+  name     = each.value.domain
   metadata {
     namespace = google_cloud_run_service.self[each.key].project
   }

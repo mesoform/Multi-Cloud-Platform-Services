@@ -64,11 +64,7 @@ jobs:
       # Create a new service account to be used for deployment
       - name: Create New SA
         run: |
-          gcloud iam service-accounts create ga-deploy --description="Deploy with github actions" --display-name="Service account deploys through github action"
-          gcloud iam service-accounts keys create ./sa-key.json --iam-account ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com --no-user-output-enabled
-          gcloud projects add-iam-policy-binding ${{ steps.vars.outputs.GCP_PROJECT_ID }} --member="serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --role="roles/owner" --no-user-output-enabled
-          gcloud projects add-iam-policy-binding ${{ steps.vars.outputs.GCP_PROJECT_ID }} --member="serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --role="roles/artifactregistry.admin" --no-user-output-enabled
-          gcloud auth activate-service-account --key-file=sa-key.json
+          gcloud iam service
 
       # Configure yaml files to contain relevant project info
       - name: Add project ID to GCP Files

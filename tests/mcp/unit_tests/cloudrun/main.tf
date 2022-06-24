@@ -70,3 +70,15 @@ data external test_secret {
 output test_secret {
   value = data.external.test_secret.result
 }
+
+data external test_domain {
+  query = {
+    for service, config in local.cloudrun_domains:
+      service => lookup(config, "domain", null )
+  }
+  program = ["python", "${path.module}/test_cloudrun_secret.py"]
+}
+
+output test_domain {
+  value = data.external.test_secret.result
+}

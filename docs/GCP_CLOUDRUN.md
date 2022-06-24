@@ -10,27 +10,28 @@ If using an existing project you can use an image hosted within the projects Con
 provided you have the correct IAM permissions to access it.  
 
 #### Cloud run specs
-| Key                           | Type | Required | Description | Default |
-|:------------------------------|:----:|:--------:|:------------|:-------:|
-| `project_id`                  | string | true | The ID of the project to be used for the service | none |
-| `location_id`                 | string | true | Location ID of the project used| none |
-| `create_google_project`       | bool | false | Whether to create a new project for services| false |
-| `billing_account`             | string | true if `create_google_project` is true | The alphanumeric ID of the billing account this project belongs to. | none |
-| `create_artiface_registry`    | bool | false | whether to create an artifact registry repository| false |
-| `name`                        | string | true | Name for Cloud Run Service, unique within cloud run region and cannot be updated | none |
-| `image`                       | string | true | URI of where the image to be hosted is contained | none |
-| `auth`                        | bool | true | Whether authentication is required to access service| false |
-| `environment_vars`            | map | false | Any environment variables to include as for image. Key is the name of the variable and value is the string it represents| none |
-| `iam`                         | map | true if `auth = true` | If authentication is required to access the service, include the iam block| false |
-| `iam.binding`                 | map | true if `replace_policy = true`, otherwise include if you want to update bindings | A block of roles and the members who will be assigned the roles. Keys should be the role, and the value for each key is the list of members assigned that role| none |
-| `iam.bindings.[role].members` | list | true if `iam.bindings` has values| Members who will be assigned the role for the iam policy [details](#IAM Usage)| none |
-| `iam.replace_policy`          | bool | false | Sets IAM policy, replacing any existing policy attached| true |
-| `iam.binding`                 | bool | false | Updates IAM policy to grant role to specified members| false |
-| `iam.add_member`              | map | false | Adds a member who can can use a specified policy. If a binding policy exists the policy for `add_member` must be different. This must include the keys `role` and `member`, with `member` following the same format as an item in `iam.members`| none |
-| `domain_name`                 | string | false | Custom domain name for service, domain must already exist| none |
-| `traffic`                     | list | false | list of traffic allocation configs across revisions | 100% traffic to latest revision |
-| `traffic.-.percent`           | map | true if `traffic.-` exists | The percentage of traffic for revision, if `revision_name` is not specified latest revision is used| none |
-| `traffic.-.revision_name`     | string | false | The name of the revision the traffic should be allocated to | 'latest_revision' is set to true if this key is not present  |
+| Key                           |  Type  |                                     Required                                      | Description                                                                                                                                                                                                                                     |                           Default                           |
+|:------------------------------|:------:|:---------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------:|
+| `project_id`                  | string |                                       true                                        | The ID of the project to be used for the service                                                                                                                                                                                                |                            none                             |
+| `location_id`                 | string |                                       true                                        | Location ID of the project used                                                                                                                                                                                                                 |                            none                             |
+| `create_google_project`       |  bool  |                                       false                                       | Whether to create a new project for services                                                                                                                                                                                                    |                            false                            |
+| `billing_account`             | string |                      true if `create_google_project` is true                      | The alphanumeric ID of the billing account this project belongs to.                                                                                                                                                                             |                            none                             |
+| `create_artiface_registry`    |  bool  |                                       false                                       | whether to create an artifact registry repository                                                                                                                                                                                               |                            false                            |
+| `name`                        | string |                                       true                                        | Name for Cloud Run Service, unique within cloud run region and cannot be updated                                                                                                                                                                |                            none                             |
+| `image`                       | string |                                       true                                        | URI of where the image to be hosted is contained                                                                                                                                                                                                |                            none                             |
+| `service_account_name`        | string |                                       false                                       | Service Account to be used the cloudrun service, defaults to the Compute Engine default service account                                                                                                                                         |                            none                             |
+| `auth`                        |  bool  |                                       true                                        | Whether authentication is required to access service                                                                                                                                                                                            |                            false                            |
+| `environment_vars`            |  map   |                                       false                                       | Any environment variables to include as for image. Key is the name of the variable and value is the string it represents                                                                                                                        |                            none                             |
+| `iam`                         |  map   |                               true if `auth = true`                               | If authentication is required to access the service, include the iam block                                                                                                                                                                      |                            false                            |
+| `iam.binding`                 |  map   | true if `replace_policy = true`, otherwise include if you want to update bindings | A block of roles and the members who will be assigned the roles. Keys should be the role, and the value for each key is the list of members assigned that role                                                                                  |                            none                             |
+| `iam.bindings.[role].members` |  list  |                         true if `iam.bindings` has values                         | Members who will be assigned the role for the iam policy [details](#IAM-Settings)                                                                                                                                                               |                            none                             |
+| `iam.replace_policy`          |  bool  |                                       false                                       | Sets IAM policy, replacing any existing policy attached                                                                                                                                                                                         |                            true                             |
+| `iam.binding`                 |  bool  |                                       false                                       | Updates IAM policy to grant role to specified members                                                                                                                                                                                           |                            false                            |
+| `iam.add_member`              |  map   |                                       false                                       | Adds a member who can can use a specified policy. If a binding policy exists the policy for `add_member` must be different. This must include the keys `role` and `member`, with `member` following the same format as an item in `iam.members` |                            none                             |
+| `domain_name`                 | string |                                       false                                       | Custom domain name for service, domain must already exist                                                                                                                                                                                       |                            none                             |
+| `traffic`                     |  list  |                                       false                                       | list of traffic allocation configs across revisions                                                                                                                                                                                             |               100% traffic to latest revision               |
+| `traffic.-.percent`           |  map   |                            true if `traffic.-` exists                             | The percentage of traffic for revision, if `revision_name` is not specified latest revision is used                                                                                                                                             |                            none                             |
+| `traffic.-.revision_name`     | string |                                       false                                       | The name of the revision the traffic should be allocated to                                                                                                                                                                                     | 'latest_revision' is set to true if this key is not present |
 
 #### IAM Settings
 ##### Policy/Member Settings
@@ -38,7 +39,7 @@ Setting `replace_policy=true` defines the whole policy and will replace any poli
 If this is an initial deployment with no previous IAM policies set, `replace_policy` should be set to `true` and all role bindings required should be defined in `bindings`.
 If there is an existing policy which you want to update, not replace, set `replace_policy` to `false` and include one role in `bindings` to update.
 Similarly, if there are existing role bindings, which you would like to add a member to, use `add_member` to assign that role to the member without replacing members already assigned to that role.  
-**NOTE:** Cannot have `add_member` if `replace_policy = true`, but can have `add_member` if both `replace_policy = false` and `bindings` has a value as long as they are not set for the same role.  
+> **NOTE:** Cannot have `add_member` if `replace_policy = true`, but can have `add_member` if both `replace_policy = false` and `bindings` has a value as long as they are not set for the same role.  
 
 ##### Member Definition
 `iam.members` is a list of members in the form `{member_type}:{member}` which must be one of ([more info](https://www.terraform.io/docs/providers/google/r/cloud_run_service_iam.html#member-members)):
@@ -55,11 +56,16 @@ More information can be found in the terraform [documentation](https://www.terra
 Secrets can be attached to the cloudrun service either as environment variables or mounted as volumes.
 To create new secrets `create_secrets` should be true in `gcp_cloudrun.yml`,
 and the secrets should be defined in `gcp_cloudrun_secrets.yml` file in the same directory as the main cloudrun configuration file.
+> **IMPORTANT**: if creating secrets using terraform, the secret itself will be stored in the **raw state as plain-text**.
+> Ensure the state is managed securely
+
+
 If `create_secrets` is false, and `gcp_cloudrun_secrets.yml` has secrets, a new version of an existing secret will be created.  
 The structure of the file should be:
 ```yaml
 secret_1:
   secret_data: "secret-value"
+  create: true # optional defaults to false
   labels: # Optional
     label1: label-value
   project: project # Optional - If different from cloudrun project
@@ -75,6 +81,7 @@ secret_1:
   rotation: # Optional - Rotational period of secrets
     next_rotation_time: 2022-10-02T15:01:23Z # Required if Next rotation_period is setm otherwise optional - Timestamp in UTC for time secret is scheduled to rotate
     rotation_period: 3600s # Optional - duration between rotation notifications in seconds 
+  
 secret_2:
   secret_data: "secret-value"
 ```
@@ -82,6 +89,8 @@ secret_2:
 To attach these secrets to the cloudrun instance they should be defined in a `secrets` block in `gcp_cloudrun.yml` in the section for the app
 To mount the secret as a volume specify the `mount_location`, to add as an environment variable specify `env_name`.
 If the secret is from a different project then cloudrun, that should be specified in `project` key.  
+> **NOTE**: ensure the service account specified by `service_account_name` (or the default Comput engine service account), 
+> has `roles/secretsManager.secretAccessor` for the relevant secrets
 Example:
 ```yaml
 components:
@@ -124,7 +133,7 @@ The specs for multiple revisions can be managed:
        * `terraform import 'module.mcp.google_cloud_run_service_iam_policy.self[\"<service>\"]' projects/<project_id>/locations/<location>/services/<service>`
     4. Apply terraform changes, and commit changes to VCS
 
-**NOTE**: Running `terraform destroy` will destroy the whole Cloud Run Service, not just that revision 
+> **NOTE**: Running `terraform destroy` will destroy the whole Cloud Run Service, not just that revision 
 
 ### Traffic
 By default, 100% of traffic is allocated to the latest revision. If managing multiple revisions traffic should be specified for each revision receiving traffic.
@@ -163,6 +172,7 @@ components:
   specs:
     default:
       name: default
+      domain: "default.company.com"
       metadata:
         
       template:
@@ -175,10 +185,10 @@ components:
             'EG2': 'something-else'
       secrets:
         secret_1:
-          version: v1
-          mount_location: /etc/
+          version: 1
+          mount_location: /etc/mounts/secret1
         secret_2:
-          version: v2
+          version: 2
           env_name: SECRET VALUE
       auth: true
       iam:

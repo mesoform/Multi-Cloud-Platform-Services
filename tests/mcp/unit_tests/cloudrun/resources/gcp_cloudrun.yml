@@ -5,6 +5,7 @@ components:
   specs:
     app1:
       name: "app1"
+      domain: "app1.company.com"
       template:
         containers:
           image: gcr.io/google-containers/nginx
@@ -48,3 +49,4 @@ components:
       auth: false
     app2:
       name: "app2"
+      domain: "app2.company.com"
