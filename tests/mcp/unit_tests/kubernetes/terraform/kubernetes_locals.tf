@@ -1,1 +1,1 @@
-/home/alex/mesoform/mcp/Multi-Cloud-Platform-Services/kubernetes_locals.tf
+../../../../../kubernetes_locals.tf
