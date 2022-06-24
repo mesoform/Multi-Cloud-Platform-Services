@@ -1,1 +1,1 @@
-../../../../../mcp/kubernetes_vars.tf
+/home/alex/mesoform/mcp/Multi-Cloud-Platform-Services/kubernetes_vars.tf
