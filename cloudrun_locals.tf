@@ -63,7 +63,7 @@ locals {
   cloudrun_secrets_mount = {
     for service, secrets in local.cloudrun_secrets_attach: service => {
       for secret, config in secrets: secret => config
-        if lookup(config, "mount_path", null) != null
+        if lookup(config, "mount_location", null) != null
     }
   }
 
