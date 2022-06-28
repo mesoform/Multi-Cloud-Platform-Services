@@ -35,8 +35,8 @@ resource "google_project" "default" {
   name            = lookup(local.cloudrun, "project_name", local.cloudrun.project_id)
   project_id      = lookup(local.cloudrun, "project_id", local.cloudrun.project_id)
   org_id          = lookup(local.cloudrun, "organization_name", null)
-  folder_id       = lookup(local.cloudrun, "folder_id", null) == null ? null : local.gae.folder_id
-  labels          = merge(lookup(local.project, "labels", {}), lookup(local.gae, "project_labels", {}))
+  folder_id       = lookup(local.cloudrun, "folder_id", null) == null ? null : local.cloudrun.folder_id
+  labels          = merge(lookup(local.project, "labels", {}), lookup(local.cloudrun, "project_labels", {}))
   billing_account = lookup(local.cloudrun, "billing_account", null)
 }
 
@@ -121,7 +121,7 @@ resource "google_cloud_run_service" "self" {
           for_each = local.cloudrun_secrets_mount[each.key]
           content {
             name = "${volume_mounts.key}_secret_volume"
-            mount_path = volume_mounts.value.mount_location
+            mount_path = volume_mounts.value.mount_path
           }
         }
       }

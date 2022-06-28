@@ -57,7 +57,7 @@ Secrets can be attached to the cloudrun service by mounting as a volume (recomme
 They can also be attached as environment variables if necessary, but this approach is not recommended due to inherent security risks.
 
 To attach secrets to the cloudrun service they should be defined in a `secrets` block for the service definition in `gcp_cloudrun.yml`. 
-To mount the secret as a volume specify the path to mount the secret with the `mount_location` attribute, and to add as an environment variable specify `env_name`.
+To mount the secret as a volume specify the path to mount the secret with the `mount_path` attribute, and to add as an environment variable specify `env_name`.
 If the secret is from a different project then cloudrun, that should be specified in `project` key.  
 > **NOTE**: ensure the service account specified by `service_account_name` (or the default Compute engine service account), 
 > has `roles/secretsManager.secretAccessor` for the relevant secrets
@@ -71,8 +71,7 @@ components:
       secrets:
         secret_1:
           version: 1 #integer version value, defaults to "latest"
-          mount_location: /mount/location/ #path to mount the secret volume to
-          file_name: secret_file.txt #optional - file name of secret, defaults to secret name
+          mount_path: /mount/location/ #path to mount the secret volume to
           env_name: SECRET_ENV_1
           project: AnotherProject
         secret_2:
@@ -80,7 +79,7 @@ components:
           env_name: SECRET_ENV_2
         secret_3:
           version: 1
-          mount_location: "/mount/location/"
+          mount_path: "/mount/location/secret_3.txt"
 ```
 
 ## Multiple Versions
@@ -155,7 +154,7 @@ components:
       secrets:
         secret_1:
           version: 1
-          mount_location: /etc/mounts/secret1
+          mount_path: /etc/mounts/secret1
         secret_2:
           version: 2
           env_name: SECRET VALUE

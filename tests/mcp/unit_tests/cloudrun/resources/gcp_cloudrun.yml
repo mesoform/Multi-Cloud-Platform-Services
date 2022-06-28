@@ -29,14 +29,14 @@ components:
       secrets:
         secret_1:
           version: v1
-          mount_location: /etc/location
+          mount_path: /etc/location
           env_name: SECRET_ENV_1
         secret_2:
           version: v2
           env_name: SECRET_ENV_2
         secret_3:
           version: v1.1
-          mount_location: "/etc/location/2"
+          mount_path: "/etc/location/2"
 
     app1-service:
       name: "app1-service"
