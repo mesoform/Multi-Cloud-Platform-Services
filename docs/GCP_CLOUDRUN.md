@@ -53,43 +53,13 @@ Similarly, if there are existing role bindings, which you would like to add a me
 More information can be found in the terraform [documentation](https://www.terraform.io/docs/providers/google/r/cloud_run_service_iam.html).
 
 ## Secrets
-Secrets can be attached to the cloudrun service either as environment variables or mounted as volumes.
-To create new secrets `create_secrets` should be true in `gcp_cloudrun.yml`,
-and the secrets should be defined in `gcp_cloudrun_secrets.yml` file in the same directory as the main cloudrun configuration file.
-> **IMPORTANT**: if creating secrets using terraform, the secret itself will be stored in the **raw state as plain-text**.
-> Ensure the state is managed securely
+Secrets can be attached to the cloudrun service by mounting as a volume (recommended). 
+They can also be attached as environment variables if necessary, but this approach is not recommended due to inherent security risks.
 
-
-If `create_secrets` is false, and `gcp_cloudrun_secrets.yml` has secrets, a new version of an existing secret will be created.  
-The structure of the file should be:
-```yaml
-secret_1:
-  secret_data: "secret-value"
-  create: true # optional defaults to false
-  labels: # Optional
-    label1: label-value
-  project: project # Optional - If different from cloudrun project
-  replicas: # Optional - Only required if not using automatic replication
-    location: region # Optional - If different from cloudrun location
-#    project: project  # Optional - If different from cloudrun project
-     kms_key_name: kms-key # Optional - If using customer_managed_encryption KMS encryption key used for protecting secret
-  topics: # Optional - Pub/Sub Topics to publish messages about control plane operations on secrets/versions
-    - projects/project/topics/topic1
-    - projects/project/topics/topic2
-  expire_time: 2022-10-02T15:01:23Z # Optional - Timestamp in UTC 
-  ttl: 5.5s #Optional - TTL for secret in seconds
-  rotation: # Optional - Rotational period of secrets
-    next_rotation_time: 2022-10-02T15:01:23Z # Required if Next rotation_period is setm otherwise optional - Timestamp in UTC for time secret is scheduled to rotate
-    rotation_period: 3600s # Optional - duration between rotation notifications in seconds 
-  
-secret_2:
-  secret_data: "secret-value"
-```
-
-To attach these secrets to the cloudrun instance they should be defined in a `secrets` block in `gcp_cloudrun.yml` in the section for the app
-To mount the secret as a volume specify the `mount_location`, to add as an environment variable specify `env_name`.
+To attach secrets to the cloudrun service they should be defined in a `secrets` block for the service definition in `gcp_cloudrun.yml`. 
+To mount the secret as a volume specify the path to mount the secret with the `mount_location` attribute, and to add as an environment variable specify `env_name`.
 If the secret is from a different project then cloudrun, that should be specified in `project` key.  
-> **NOTE**: ensure the service account specified by `service_account_name` (or the default Comput engine service account), 
+> **NOTE**: ensure the service account specified by `service_account_name` (or the default Compute engine service account), 
 > has `roles/secretsManager.secretAccessor` for the relevant secrets
 Example:
 ```yaml
@@ -112,7 +82,6 @@ components:
           version: 1
           mount_location: "/mount/location/"
 ```
-
 
 ## Multiple Versions
 By default the revision name for a Cloud Run deployment is auto-generated. 

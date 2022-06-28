@@ -50,11 +50,6 @@ variable gcp_cloudrun_traffic_yml {
   default     = "../gcp_cloudrun_traffic.yml"
 }
 
-variable gcp_cloudrun_secrets_yml {
-  description = "Path to YAML file containing traffic configuration for Cloud Run "
-  type        = string
-  default     = "../gcp_cloudrun_secrets.yml"
-}
 
 variable gcp_ae_traffic {
   description = "Map of traffic for each revision in format {'revision_name` = percent}"
