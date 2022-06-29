@@ -1,25 +1,34 @@
 # Google Cloud Run 
-Cloud run manages the deployment of scalable containerized serverless applications applications [(Documentation)](https://cloud.google.com/run)
-### gcp_cloudrun.yml
-#### Prerequisites
-* If creating a new project your must have an existing billing account ID to specify in the `billing_account` setting
-* Cloud run retrieves images hosted in Artifact Registry (recommended)  or Container Registry.  
-If creating a project, there must be an existing image that you have access to (public/global),
-which is specified with the `image_uri` value in `gcp_clourun.yml`.
-If using an existing project you can use an image hosted within the projects Container Registry or Artifact Registy,
-provided you have the correct IAM permissions to access it.  
+Cloud Run manages the deployment of scalable containerized serverless applications [(Documentation)](https://cloud.google.com/run)
+## Prerequisites
+* There must be an existing Google Cloud Project, with `cloudresourcemanager.googleapis.com` enabled
+* There should be an existing image in Google Artifact Registry (or Container Registry) that the Cloud Run service will use
+* The user performing the deployment must have permissions to:
+  * Deploy cloudrun services. Can use `roles/run.admin` or a custom role containing:
+    * `run.services.create`
+    * `run.services.update`
+    * `run.services.get`
+  * Access Images stored in Artifact Registry or Container Registry
+    * `roles/artifactregistry.reader`   
+    or
+    * `roles/storage.objectViewer` on the Container Registry Bucket
+  * Enable services
+    * `roles/servicemanagement.serviceConsumer`
+  * Permission to act as the Runtime Service Account
+    * `iam.serviceAccounts.actAs`
+  * Update IAM policy
 
-#### Cloud run specs
+## gcp_cloudrun.yml
+
+### Cloud run specs
 | Key                           |  Type  |                                     Required                                      | Description                                                                                                                                                                                                                                     |                           Default                           |
 |:------------------------------|:------:|:---------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------:|
 | `project_id`                  | string |                                       true                                        | The ID of the project to be used for the service                                                                                                                                                                                                |                            none                             |
 | `location_id`                 | string |                                       true                                        | Location ID of the project used                                                                                                                                                                                                                 |                            none                             |
-| `create_google_project`       |  bool  |                                       false                                       | Whether to create a new project for services                                                                                                                                                                                                    |                            false                            |
 | `billing_account`             | string |                      true if `create_google_project` is true                      | The alphanumeric ID of the billing account this project belongs to.                                                                                                                                                                             |                            none                             |
-| `create_artiface_registry`    |  bool  |                                       false                                       | whether to create an artifact registry repository                                                                                                                                                                                               |                            false                            |
 | `name`                        | string |                                       true                                        | Name for Cloud Run Service, unique within cloud run region and cannot be updated                                                                                                                                                                |                            none                             |
 | `image`                       | string |                                       true                                        | URI of where the image to be hosted is contained                                                                                                                                                                                                |                            none                             |
-| `service_account_name`        | string |                                       false                                       | Service Account to be used the cloudrun service, defaults to the Compute Engine default service account                                                                                                                                         |                            none                             |
+| `service_account_name`        | string |                                       false                                       | Service Account to be used as Cloud Run runtime service account, defaults to the Compute Engine default service account                                                                                                                         |                            none                             |
 | `auth`                        |  bool  |                                       true                                        | Whether authentication is required to access service                                                                                                                                                                                            |                            false                            |
 | `environment_vars`            |  map   |                                       false                                       | Any environment variables to include as for image. Key is the name of the variable and value is the string it represents                                                                                                                        |                            none                             |
 | `iam`                         |  map   |                               true if `auth = true`                               | If authentication is required to access the service, include the iam block                                                                                                                                                                      |                            false                            |
@@ -33,15 +42,17 @@ provided you have the correct IAM permissions to access it.
 | `traffic.-.percent`           |  map   |                            true if `traffic.-` exists                             | The percentage of traffic for revision, if `revision_name` is not specified latest revision is used                                                                                                                                             |                            none                             |
 | `traffic.-.revision_name`     | string |                                       false                                       | The name of the revision the traffic should be allocated to                                                                                                                                                                                     | 'latest_revision' is set to true if this key is not present |
 
-#### IAM Settings
-##### Policy/Member Settings
+### IAM Settings
+The IAM policy for the cloudrun service can be configured using the settings described below. 
+See [Cloud Run IAM roles](https://cloud.google.com/run/docs/reference/iam/roles)
+#### Policy/Member Settings
 Setting `replace_policy=true` defines the whole policy and will replace any policy attatched to the cloudrun service defined.
 If this is an initial deployment with no previous IAM policies set, `replace_policy` should be set to `true` and all role bindings required should be defined in `bindings`.
 If there is an existing policy which you want to update, not replace, set `replace_policy` to `false` and include one role in `bindings` to update.
 Similarly, if there are existing role bindings, which you would like to add a member to, use `add_member` to assign that role to the member without replacing members already assigned to that role.  
 > **NOTE:** Cannot have `add_member` if `replace_policy = true`, but can have `add_member` if both `replace_policy = false` and `bindings` has a value as long as they are not set for the same role.  
 
-##### Member Definition
+#### Member Definition
 `iam.members` is a list of members in the form `{member_type}:{member}` which must be one of ([more info](https://www.terraform.io/docs/providers/google/r/cloud_run_service_iam.html#member-members)):
 * `"allUsers:"`
 * `"allAuthenticatedUsers:"`
@@ -52,7 +63,7 @@ Similarly, if there are existing role bindings, which you would like to add a me
 
 More information can be found in the terraform [documentation](https://www.terraform.io/docs/providers/google/r/cloud_run_service_iam.html).
 
-## Secrets
+### Secrets
 Secrets can be attached to the cloudrun service by mounting as a volume (recommended). 
 They can also be attached as environment variables if necessary, but this approach is not recommended due to inherent security risks.
 
@@ -61,6 +72,7 @@ To mount the secret as a volume specify the path to mount the secret with the `m
 If the secret is from a different project then cloudrun, that should be specified in `project` key.  
 > **NOTE**: ensure the service account specified by `service_account_name` (or the default Compute engine service account), 
 > has `roles/secretsManager.secretAccessor` for the relevant secrets
+
 Example:
 ```yaml
 components:
@@ -83,7 +95,7 @@ components:
           mount_location: "/mount/location/"
 ```
 
-## Multiple Versions
+### Multiple Versions
 By default the revision name for a Cloud Run deployment is auto-generated. 
 To specify a revision name for the Cloud Run deployment, the key `components.specs.<app_name>.template.metadata.name` must be set, 
 following the format of `<app_name>-<revision_id>`. 
@@ -171,11 +183,13 @@ components:
           'admin':
             members:
               - "user:admin@example.com"
+          'run.invoker':
+            members:
+              - "group:developers@example.com"
+              - "serviceAccount:service-user@project.iam.gserviceaccount.com"
         add_member:
           role: 'admin'
           member: 'user: admin@example.com'
       domain_name: "domain.com"
       #Use hyphens to separate traffic configurations, making a list of configurations
-
-
 ```
