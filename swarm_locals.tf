@@ -7,7 +7,6 @@ locals {
   docker_components       = try(lookup(local.docker, "components", {}), lookup(local.docker, "components"))
   docker_components_specs = lookup(local.docker_components, "specs", {})
 
-
   docker_container = { for app, config in local.docker_components :
     app => { docker_container : lookup(config, "docker_container", null) }
     if lookup(config, "docker_container", null) != null
@@ -43,6 +42,5 @@ locals {
   docker_config = { for app, config in local.docker_components :
     app => { docker_config : lookup(config, "docker_config", null) }
     if lookup(config, "docker_config", null) != null
-  }
-  
+  } 
 }
