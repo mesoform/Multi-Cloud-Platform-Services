@@ -1,1 +1,1 @@
-../../../../../mcp/kubernetes_vars.tf
+../../../../../kubernetes_vars.tf

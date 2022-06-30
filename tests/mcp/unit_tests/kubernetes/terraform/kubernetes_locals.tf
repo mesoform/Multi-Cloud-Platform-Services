@@ -1,1 +1,1 @@
-../../../../../mcp/kubernetes_locals.tf
+../../../../../kubernetes_locals.tf

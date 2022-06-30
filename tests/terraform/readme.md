@@ -1,4 +1,4 @@
-An example of using the MMCF module to deploy a Google App Engine application, Google Cloud Run service, and Kubernetes Engine services.
+An example of using the MCCF module to deploy a Google App Engine application, Google Cloud Run service, and Kubernetes Engine services.
 
 The following configuration is used to deploy the specified structure:
 
@@ -27,7 +27,7 @@ app_2
 The directory contains configuration files, secrets and others necessary for the correct operation of containers deployed in the Kubernetes engine
 
 terrraform
-The storage location of the main module main.tf with the location of the mcp directory. All components of the MMCF module are deployed from this directory.
+The storage location of the main module main.tf with the location of the mcp directory. All components of the MCCF module are deployed from this directory.
 
 K8s.yml
 Kubernetes Engine Services Configuration File

@@ -1,1 +1,1 @@
-../../../../mcp/cloudrun_locals.tf
+../../../../cloudrun_locals.tf

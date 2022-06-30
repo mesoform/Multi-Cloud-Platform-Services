@@ -8,7 +8,7 @@ The build and delivery of the files/container for the application should be done
 Container image should be hosted in [artifact registry](https://cloud.google.com/artifact-registry/docs/docker), 
 or [google container registry](https://cloud.google.com/container-registry/docs/pushing-and-pulling) (deprecated).   
 ##### Files  
-A `mmcf-manifest.json` manifest file should be included in the subdirectory for each application. By default it is found in `<app_dir>/build`.
+A `mccf-manifest.json` manifest file should be included in the subdirectory for each application. By default it is found in `<app_dir>/build`.
 ```
     mesoform-service/
         L project.yml
@@ -17,7 +17,7 @@ A `mmcf-manifest.json` manifest file should be included in the subdirectory for 
             L main.tf
         L app1/
             L build/
-                L mmcf-manifest.yml
+                L mccf-manifest.yml
                 L exploded-project-app/
                     L ...
 ```
@@ -149,7 +149,7 @@ Below is a list of attributes which are available to both GAE standard and GAE f
 | Key | Type | Required | Description | Default |
 |:----|:----:|:--------:|:------------|:-------:|
 | `env` | string | false | either `flex` or `standard` are the only values allowed here | `standard` |
-| `root_dir` | string | false | on-disk directory for the app/service. The value is relative to the project root where the `gcp_ae.yml` and `project.yml` files are located. If this is omitted, MMCF will expect files to be in a directory of the same name as the app. So, for the default app, you will either need a directory called `default` or set this value to the real name of the directory | spec key name (I.e. the name of the app/service) |
+| `root_dir` | string | false | on-disk directory for the app/service. The value is relative to the project root where the `gcp_ae.yml` and `project.yml` files are located. If this is omitted, MCCF will expect files to be in a directory of the same name as the app. So, for the default app, you will either need a directory called `default` or set this value to the real name of the directory | spec key name (I.e. the name of the app/service) |
 | `runtime` | string | true | GAE available runtime. This differs between environment. Check the GAE docs for details | none |
 | `entrypoint` | string | true | command to run to start the app/service when deployed to GAE | none |
 
@@ -286,7 +286,7 @@ components:
   specs:
 ```
 ####  Error 404: Unable to retrieve P4SA: [service-<project_number>@gcp-gae-service.iam.gserviceaccount.com] from GAIA. Could be GAIA propagation delay or request from deleted apps.  
-This is most often a propogation delay with creation of service account for app engine.   
+This is most often a propagation delay with creation of service account for app engine.   
 P4SA (Per-Product Per-Project Service Account) refers to the google managed service account for app engine.
 The error means that a GAIA (Google Account and ID Administration) ID has not yet been associated with the service account for this project.   
 A default of 30s has been added between the creation of the service account and creation of flexible app service, 
