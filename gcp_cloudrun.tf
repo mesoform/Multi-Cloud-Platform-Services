@@ -1,11 +1,11 @@
-resource "google_project_service" "iam" {
+resource google_project_service iam {
   count              = local.cloudrun == {} ? 0 : 1
-  project            =  local.cloudrun["project_id"]
+  project            = local.cloudrun["project_id"]
   service            = "iam.googleapis.com"
   disable_on_destroy = false
 }
 
-resource "google_project_service" "cloudrun" {
+resource google_project_service cloudrun {
   count              = local.cloudrun == {} ? 0 : 1
   project            = local.cloudrun["project_id"]
   service            = "run.googleapis.com"
@@ -14,7 +14,7 @@ resource "google_project_service" "cloudrun" {
 }
 
 //noinspection HILUnresolvedReference
-resource "google_cloud_run_service" "self" {
+resource google_cloud_run_service self {
   provider = google-beta
   for_each = local.cloudrun_specs
   location = local.cloudrun.location_id
@@ -129,7 +129,7 @@ resource "google_cloud_run_service" "self" {
 
 }
 
-data "google_iam_policy" "noauth" {
+data google_iam_policy noauth {
   for_each = local.cloudrun_specs
   binding {
     role    = "roles/run.invoker"
@@ -137,7 +137,7 @@ data "google_iam_policy" "noauth" {
   }
 }
 
-data "google_iam_policy" "auth" {
+data google_iam_policy auth {
   //noinspection HILUnresolvedReference
   for_each = local.cloudrun_specs
   dynamic "binding" {
@@ -150,7 +150,7 @@ data "google_iam_policy" "auth" {
 }
 
 //noinspection HILUnresolvedReference
-resource "google_cloud_run_service_iam_policy" "self" {
+resource google_cloud_run_service_iam_policy self {
   for_each = {
     for key, specs in local.cloudrun_specs : key => specs
       if !specs.auth || (specs.auth && (lookup(local.cloudrun_iam[key], "replace_policy", false)))
@@ -163,7 +163,7 @@ resource "google_cloud_run_service_iam_policy" "self" {
 }
 
 //noinspection HILUnresolvedReference
-resource "google_cloud_run_service_iam_binding" "self" {
+resource google_cloud_run_service_iam_binding self {
   for_each = {
     for key, bindings in local.cloudrun_iam_bindings : key => bindings
     if !lookup(local.cloudrun_iam[key], "replace_policy", false) && length(bindings) != 0
@@ -176,7 +176,7 @@ resource "google_cloud_run_service_iam_binding" "self" {
 }
 
 //noinspection HILUnresolvedReference
-resource "google_cloud_run_service_iam_member" "self" {
+resource google_cloud_run_service_iam_member self {
   for_each = {
     for key, specs in local.cloudrun_iam : key => specs
     if local.cloudrun_specs[key].auth && lookup(local.cloudrun_iam[key], "add_member", {}) != {}
@@ -189,7 +189,7 @@ resource "google_cloud_run_service_iam_member" "self" {
 }
 
 //noinspection HILUnresolvedReference
-resource "google_cloud_run_domain_mapping" "self" {
+resource google_cloud_run_domain_mapping self {
   for_each = local.cloudrun_domains
   location = google_cloud_run_service.self[each.key].location
   name     = each.value.domain
