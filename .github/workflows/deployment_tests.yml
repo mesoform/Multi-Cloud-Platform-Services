@@ -92,7 +92,7 @@ jobs:
         run: |
           cd k8s/terraform
           sed -i "s/gcs-bucket-name/${{ steps.vars.outputs.GCP_PROJECT_ID }}_bucket/" main.tf
-          sed -i "s/source-path/..\/..\/..\/..\/..\/mcp/" main.tf
+          sed -i "s/source-path/..\/..\/..\/..\/..\//" main.tf
           cat main.tf
           terraform init
           terraform plan -out="./plan.tfplan"
@@ -120,7 +120,7 @@ jobs:
           cd GCP/terraform
           sleep 5m
           sed -i "s/gcs-bucket-name/${{ steps.vars.outputs.GCP_PROJECT_ID }}_bucket/" main.tf
-          sed -i "s/source-path/..\/..\/..\/..\/..\/mcp/" main.tf
+          sed -i "s/source-path/..\/..\/..\/..\/..\//" main.tf
           cat main.tf
           terraform init
           terraform plan -out="./plan.tfplan"
@@ -132,22 +132,3 @@ jobs:
         run: |
           gcloud projects delete ${{ steps.vars.outputs.GCP_PROJECT_ID }}
 #          gcloud beta billing projects unlink ${{ steps.vars.outputs.GCP_PROJECT_ID }} #Unlinking billing doesn't seem to be necessary
-
-  ############################# Deployment Tests for GCP Access Context Manager ####################################
-  ## Job to check if secret with service account for deploying perimeter exists
-  check-vpc-sa:
-    runs-on: ubuntu-latest
-    outputs:
-      sa-exists: ${{ steps.check.outputs.EXISTS }}
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Check service account exists
-        id: check
-        run: |
-          if [[ "${{ secrets.GCP_VPC_SA_KEY }}" == *"private_key_id"* ]]; then
-            echo ::set-output name=EXISTS::true
-          else
-            echo ::set-output name=EXISTS::false
-          fi
