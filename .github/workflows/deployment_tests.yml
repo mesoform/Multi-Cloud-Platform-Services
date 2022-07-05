@@ -106,12 +106,6 @@ jobs:
           terraform apply plan.tfplan
           terraform plan -destroy -out="./destroy.tfplan"
 
-      - name: delete project
-        if : ${{ always() }}
-        run: |
-          gcloud projects delete ${{ steps.vars.outputs.GCP_PROJECT_ID }}
-      #          gcloud beta billing projects unlink ${{ steps.vars.outputs.GCP_PROJECT_ID }} #Unlinking billing doesn't seem to be necessary
-
       # Install kubectl and create gke cluster
       - name: setup kubectl
         run: |
@@ -131,3 +125,9 @@ jobs:
           terraform apply plan.tfplan
           terraform plan -destroy -out="./destroy.tfplan"
           terraform apply destroy.tfplan
+
+      - name: delete project
+        if: ${{ always() }}
+        run: |
+          gcloud projects delete ${{ steps.vars.outputs.GCP_PROJECT_ID }}
+      #          gcloud beta billing projects unlink ${{ steps.vars.outputs.GCP_PROJECT_ID }} #Unlinking billing doesn't seem to be necessary
