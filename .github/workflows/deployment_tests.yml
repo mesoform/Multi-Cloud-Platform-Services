@@ -83,8 +83,7 @@ jobs:
       - name: Build App
         run: |
           cd GCP/app/build/helloworld
-          sleep 300
-          gcloud artifacts repositories create app-repo --repository-format=docker --location=europe-west2 --description="Repository for storing app"
+          timeout 420 bash -c 'while ! gcloud artifacts repositories create app-repo --repository-format=docker --location=europe-west2 --description="Repository for storing app"; do echo "Retrying in 30s" && sleep 30; done'
           gcloud builds submit --tag europe-west2-docker.pkg.dev/${{ steps.vars.outputs.GCP_PROJECT_ID }}/app-repo/helloworld
 
       # Configure yaml files to contain relevant project info
