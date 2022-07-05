@@ -79,27 +79,6 @@ jobs:
           sed -i "s/<image_uri>/europe-west2-docker.pkg.dev\/${{ steps.vars.outputs.GCP_PROJECT_ID }}\/app-repo\/helloworld:latest/" gcp_ae.yml
           sed -i "s/<project_id>/${{ steps.vars.outputs.GCP_PROJECT_ID }}/" gcp_cloudrun.yml
 
-
-      # Install kubectl and create gke cluster
-      - name: setup kubectl
-        run: |
-          gcloud components install kubectl
-          gcloud container clusters create-auto mcpdeploytest-cluster --region=europe-west2
-          gcloud container clusters get-credentials mcpdeploytest-cluster --region=europe-west2
-
-      # Setup main.tf, deploy and destroy k8s
-      - name: deploy k8s
-        run: |
-          cd k8s/terraform
-          sed -i "s/gcs-bucket-name/${{ steps.vars.outputs.GCP_PROJECT_ID }}_bucket/" main.tf
-          sed -i "s/source-path/..\/..\/..\/..\/..\//" main.tf
-          cat main.tf
-          terraform init
-          terraform plan -out="./plan.tfplan"
-          terraform apply plan.tfplan
-          terraform plan -destroy -out="./destroy.tfplan"
-          terraform apply destroy.tfplan
-
       # Deploy app image to Artifact Repository
       - name: Build App
         run: |
@@ -127,8 +106,28 @@ jobs:
           terraform apply plan.tfplan
           terraform plan -destroy -out="./destroy.tfplan"
 
+      # Install kubectl and create gke cluster
+      - name: setup kubectl
+        run: |
+          gcloud components install kubectl
+          gcloud container clusters create-auto mcpdeploytest-cluster --region=europe-west2
+          gcloud container clusters get-credentials mcpdeploytest-cluster --region=europe-west2
+
+      # Setup main.tf, deploy and destroy k8s
+      - name: deploy k8s
+        run: |
+          cd k8s/terraform
+          sed -i "s/gcs-bucket-name/${{ steps.vars.outputs.GCP_PROJECT_ID }}_bucket/" main.tf
+          sed -i "s/source-path/..\/..\/..\/..\/..\//" main.tf
+          cat main.tf
+          terraform init
+          terraform plan -out="./plan.tfplan"
+          terraform apply plan.tfplan
+          terraform plan -destroy -out="./destroy.tfplan"
+          terraform apply destroy.tfplan
+
       - name: delete project
-        if : ${{ always() }}
+        if: ${{ always() }}
         run: |
           gcloud projects delete ${{ steps.vars.outputs.GCP_PROJECT_ID }}
-#          gcloud beta billing projects unlink ${{ steps.vars.outputs.GCP_PROJECT_ID }} #Unlinking billing doesn't seem to be necessary
+      #          gcloud beta billing projects unlink ${{ steps.vars.outputs.GCP_PROJECT_ID }} #Unlinking billing doesn't seem to be necessary
