@@ -40,12 +40,36 @@ locals {
       key => lookup(local.cloudrun_iam[key], "bindings", {})
   }
 
-//  cloudrun_traffic = local.cloudrun_traffic_config == {} ? {} : {
   cloudrun_traffic = {
     for service, specs in local.cloudrun_specs: service => {
       for revision, percent in local.cloudrun_traffic_config: replace(revision, ";", "-") => percent
       if length(regexall("^${service};", revision)) > 0
     }
+  }
+
+  cloudrun_secrets_attach = {
+    for service, specs in local.cloudrun_specs: service => {
+      for secret, config in lookup(specs, "secrets", {}): secret => config
+    }
+  }
+
+  cloudrun_secrets_env = {
+    for service, secrets in local.cloudrun_secrets_attach: service => {
+      for secret, config in secrets: secret => config
+        if lookup(config, "env_name", null) != null
+
+    }
+  }
+  cloudrun_secrets_mount = {
+    for service, secrets in local.cloudrun_secrets_attach: service => {
+      for secret, config in secrets: secret => config
+        if lookup(config, "mount_location", null) != null
+    }
+  }
+
+  cloudrun_domains = {
+    for key, specs in local.cloudrun_specs : key => specs
+    if lookup(local.cloudrun_specs[key], "domain", null) != null
   }
 }
 
