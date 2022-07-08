@@ -95,7 +95,7 @@ resource google_cloud_run_service self {
       for_each = {metadata: lookup(each.value.template, "metadata",{})}
       content {
         name             = lookup(metadata.value, "name", null)
-        annotations      = merge(local.cloudrun_default.template_metadata.annotations, lookup(metadata.value, "annotations", null))
+        annotations      = merge(local.cloudrun_default.template_metadata.annotations, lookup(metadata.value, "annotations", {}))
         labels           = lookup(metadata.value, "labels", null)
         generation       = lookup(metadata.value, "generation", null)
         resource_version = lookup(metadata.value, "resource_version", null)
