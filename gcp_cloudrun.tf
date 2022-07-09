@@ -1,25 +1,12 @@
-resource google_project_service iam {
-  count              = local.cloudrun == {} ? 0 : 1
-  project            = local.cloudrun["project_id"]
-  service            = "iam.googleapis.com"
-  disable_on_destroy = false
-}
-
-resource google_project_service cloudrun {
-  count              = local.cloudrun == {} ? 0 : 1
-  project            = local.cloudrun["project_id"]
-  service            = "run.googleapis.com"
-  disable_on_destroy = false
-  disable_dependent_services = false
-}
-
 //noinspection HILUnresolvedReference
 resource google_cloud_run_service self {
   provider = google-beta
   for_each = local.cloudrun_specs
   location = local.cloudrun.location_id
   name     = each.value.name
-  project  = google_project_service.cloudrun[0].project
+  project  = local.cloudrun["project_id"]
+  autogenerate_revision_name = local.cloudrun_autogenerate_revision_name[each.key]
+  //noinspection HILUnresolvedReference
   dynamic metadata {
     for_each = {metadata = lookup(each.value,"metadata",{})}
     content{
@@ -82,6 +69,7 @@ resource google_cloud_run_service self {
         }
         dynamic "volume_mounts" {
           for_each = local.cloudrun_secrets_mount[each.key]
+          //noinspection HILUnresolvedReference
           content {
             name = "${volume_mounts.key}_secret_volume"
             mount_path = volume_mounts.value.mount_location

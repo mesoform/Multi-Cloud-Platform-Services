@@ -5,8 +5,6 @@ locals {
       annotations = {
         "run.googleapis.com/client-name"    = "terraform"
         "run.googleapis.com/ingress"        = "all"
-        "run.googleapis.com/ingress-status" = "all"
-
       }
     }
     template_metadata = {
@@ -31,6 +29,10 @@ locals {
     for key, specs in local.cloudrun_components_specs:
       key => merge(lookup(local.cloudrun_components, "common", {}), specs)
   }
+
+  cloudrun_autogenerate_revision_name = {for service, spec in local.cloudrun_specs: service =>
+    try(lookup(spec.template["metadata"], "name", null), null) == null ? lookup(spec, "autogenerate_revision_name", true) : false}
+
   cloudrun_iam = {
     for key, specs in local.cloudrun_specs:
       key => lookup(local.cloudrun_specs[key], "iam", {})

@@ -6,10 +6,12 @@ components:
     app1:
       name: "app1"
       domain: "app1.company.com"
+      autogenerate_revision_name: true
       template:
         containers:
           image: gcr.io/google-containers/nginx
         metadata:
+          name: "app1-revision-name"
           annotations:
             "run.googleapis.com/client-name": "terraform"
       auth: true
@@ -49,4 +51,5 @@ components:
       auth: false
     app2:
       name: "app2"
+      autogenerate_revision_name: false
       domain: "app2.company.com"

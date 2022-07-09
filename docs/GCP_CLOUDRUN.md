@@ -1,7 +1,10 @@
 # Google Cloud Run 
 Cloud Run manages the deployment of scalable containerized serverless applications [(Documentation)](https://cloud.google.com/run)
 ## Prerequisites
-* There must be an existing Google Cloud Project, with `cloudresourcemanager.googleapis.com` enabled
+* There must be an existing Google Cloud Project, with the following API's enabled:
+  * `cloudresourcemanager.googleapis.com` 
+  * `run.googleapis.com`
+  * `iam.googleapis.com`
 * There should be an existing image in Google Artifact Registry (or Container Registry) that the Cloud Run service will use
 * The user performing the deployment must have permissions to:
   * Deploy cloudrun services. Can use `roles/run.admin` or a custom role containing:
@@ -13,7 +16,7 @@ Cloud Run manages the deployment of scalable containerized serverless applicatio
     or
     * `roles/storage.objectViewer` on the Container Registry Bucket
   * Enable services
-    * `roles/servicemanagement.serviceConsumer`
+    * `roles/serviceUsage.serviceUsageAdmin`
   * Permission to act as the Runtime Service Account
     * `iam.serviceAccounts.actAs`
   * Update IAM policy
@@ -30,6 +33,7 @@ Cloud Run manages the deployment of scalable containerized serverless applicatio
 | `image`                       | string |                                       true                                        | URI of where the image to be hosted is contained                                                                                                                                                                                                |                            none                             |
 | `service_account_name`        | string |                                       false                                       | Service Account to be used as Cloud Run runtime service account, defaults to the Compute Engine default service account                                                                                                                         |                            none                             |
 | `auth`                        |  bool  |                                       true                                        | Whether authentication is required to access service                                                                                                                                                                                            |                            false                            |
+| `autogenerate_revision_name`  |  bool  |                                       false                                       | Whether to autogenerate the revision name, default is `true`, to specify revision name `templates.metadata.name` should be set                                                                                                                  |  true if `template.metadata.name` not set, false if is set  |
 | `environment_vars`            |  map   |                                       false                                       | Any environment variables to include as for image. Key is the name of the variable and value is the string it represents                                                                                                                        |                            none                             |
 | `iam`                         |  map   |                               true if `auth = true`                               | If authentication is required to access the service, include the iam block                                                                                                                                                                      |                            false                            |
 | `iam.binding`                 |  map   | true if `replace_policy = true`, otherwise include if you want to update bindings | A block of roles and the members who will be assigned the roles. Keys should be the role, and the value for each key is the list of members assigned that role                                                                                  |                            none                             |
@@ -41,7 +45,7 @@ Cloud Run manages the deployment of scalable containerized serverless applicatio
 | `traffic`                     |  list  |                                       false                                       | list of traffic allocation configs across revisions                                                                                                                                                                                             |               100% traffic to latest revision               |
 | `traffic.-.percent`           |  map   |                            true if `traffic.-` exists                             | The percentage of traffic for revision, if `revision_name` is not specified latest revision is used                                                                                                                                             |                            none                             |
 | `traffic.-.revision_name`     | string |                                       false                                       | The name of the revision the traffic should be allocated to                                                                                                                                                                                     | 'latest_revision' is set to true if this key is not present |
-| `secrets`                     |  map   |                                       false                                       | Map of secrets and their mount location, see [below](#Secrets)for attributes                                                                                                                                                                    |                                                             |
+| `secrets`                     |  map   |                                       false                                       | Map of secrets and their mount location, see [below](#Secrets)for attributes                                                                                                                                                                    |                            none                             |
 
 ### IAM Settings
 The IAM policy for the cloudrun service can be configured using the settings described below. 

@@ -7,13 +7,7 @@ except Exception as e:
     print(e, stderr)
 
 """
-    Tests that secrets are added to correct variable for the environment attachment type/
-    Config structure should look like
-    secrets:
-      secret_1: 
-        version: $Version
-        env_name: $Environent-variable-name 
-        
+    Tests if domains are read from the configuration
 
 """
 
