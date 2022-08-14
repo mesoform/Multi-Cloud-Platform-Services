@@ -25,12 +25,6 @@ jobs:
         working-directory: ${{env.working-directory}}
 
     steps:
-    # Install the latest version of Terraform CLI
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_wrapper: false
-
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v2
@@ -40,6 +34,13 @@ jobs:
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_wrapper: false
+
+    # Install gcoud sdk and set the service account
+    - name: Setup Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{secrets.GCP_SA_KEY}}
+        export_default_credentials: true
 
     # Run unit tests in MCP module
     - name: Run MCP unit tests
@@ -69,5 +70,3 @@ jobs:
         done
         echo ${MESSAGE^^}
         exit $EXIT_CODE
-
-

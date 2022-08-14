@@ -34,3 +34,27 @@ data external test_ae_traffic_empty {
 output test_ae_traffic_empty {
   value = data.external.test_ae_traffic.result
 }
+
+data external test_domain {
+  query = {
+    for service, config in local.cloudrun_domains:
+      service => lookup(config, "domain", null )
+  }
+  program = ["python", "${path.module}/test_cloudrun_domain.py"]
+}
+
+output test_domain {
+  value = data.external.test_domain.result
+}
+
+data external test_autogenerate_revision_name {
+  query = {
+    for service, value in local.cloudrun_autogenerate_revision_name:
+      service => tostring(value)
+  }
+  program = ["python", "${path.module}/test_cloudrun_autogenerate_revision_name.py"]
+}
+
+output test_autogenerate_revision_name {
+  value = data.external.test_autogenerate_revision_name.result
+}

@@ -5,8 +5,6 @@ locals {
       annotations = {
         "run.googleapis.com/client-name"    = "terraform"
         "run.googleapis.com/ingress"        = "all"
-        "run.googleapis.com/ingress-status" = "all"
-
       }
     }
     template_metadata = {
@@ -31,6 +29,10 @@ locals {
     for key, specs in local.cloudrun_components_specs:
       key => merge(lookup(local.cloudrun_components, "common", {}), specs)
   }
+
+  cloudrun_autogenerate_revision_name = {for service, spec in local.cloudrun_specs: service =>
+    try(lookup(spec.template["metadata"], "name", null), null) == null ? lookup(spec, "autogenerate_revision_name", true) : false}
+
   cloudrun_iam = {
     for key, specs in local.cloudrun_specs:
       key => lookup(local.cloudrun_specs[key], "iam", {})
@@ -40,12 +42,36 @@ locals {
       key => lookup(local.cloudrun_iam[key], "bindings", {})
   }
 
-//  cloudrun_traffic = local.cloudrun_traffic_config == {} ? {} : {
   cloudrun_traffic = {
     for service, specs in local.cloudrun_specs: service => {
       for revision, percent in local.cloudrun_traffic_config: replace(revision, ";", "-") => percent
       if length(regexall("^${service};", revision)) > 0
     }
+  }
+
+  cloudrun_secrets_attach = {
+    for service, specs in local.cloudrun_specs: service => {
+      for secret, config in lookup(specs, "secrets", {}): secret => config
+    }
+  }
+
+  cloudrun_secrets_env = {
+    for service, secrets in local.cloudrun_secrets_attach: service => {
+      for secret, config in secrets: secret => config
+        if lookup(config, "env_name", null) != null
+
+    }
+  }
+  cloudrun_secrets_mount = {
+    for service, secrets in local.cloudrun_secrets_attach: service => {
+      for secret, config in secrets: secret => config
+        if lookup(config, "mount_location", null) != null
+    }
+  }
+
+  cloudrun_domains = {
+    for key, specs in local.cloudrun_specs : key => specs
+    if lookup(local.cloudrun_specs[key], "domain", null) != null
   }
 }
 
