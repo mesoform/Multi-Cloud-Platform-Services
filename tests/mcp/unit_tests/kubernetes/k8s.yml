@@ -1,6 +1,6 @@
 components:
   common:
-    name: name
+    stateful_set
   specs:
     test_app_1:
       config_map:

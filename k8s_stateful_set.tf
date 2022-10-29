@@ -1,7 +1,30 @@
 //noinspection HILUnresolvedReference
-resource "kubernetes_stateful_set" "self" {
+data kubernetes_service_v1 stateful_set {
+  for_each = {
+    for app, components in local.k8s_stateful_set: app => components
+    if length(lookup(local.k8s_services, app, {})) == 0 || local.k8s_services[app].service.metadata.name != components.stateful_set.spec.service_name
+#    if length(lookup(local.k8s_components_specs[app], "service", {})) == 0 || lookup(local.servicecomponents.spec.service_name
+  }
+  //noinspection HILUnresolvedReference
+  metadata {
+    name = each.value.stateful_set.spec.service_name
+  }
+}
+
+data kubernetes_storage_class_v1 stateful_set {
+  for_each = {
+    for app, components in local.k8s_stateful_set: app => components
+    if length(lookup(local.k8s_storage_class, app, {})) == 0 || (lookup(components.stateful_set.spec, "volume_claim_template", null) != null && local.k8s_storage_class[app].storage_class.metadata.name != components.stateful_set.spec.volume_claim_template.spec.storage_class_name)
+ }
+  metadata {
+    name = each.value.stateful_set.spec.volume_claim_template
+  }
+}
+
+//noinspection HILUnresolvedReference
+resource kubernetes_stateful_set_v1 self {
   for_each         = local.k8s_stateful_set
-  wait_for_rollout = lookup(each.value.stateful_set, "wait_fro_rollout", true)
+  wait_for_rollout = lookup(each.value.stateful_set, "wait_for_rollout", true)
   //noinspection HILUnresolvedReference
   metadata {
     annotations   = lookup(each.value.stateful_set.metadata, "annotations", null)
@@ -12,7 +35,9 @@ resource "kubernetes_stateful_set" "self" {
   }
   //noinspection HILUnresolvedReference
   spec {
-    service_name           = lookup(each.value.stateful_set.spec, "service_name", "")
+    service_name = length(lookup(local.k8s_services, each.key, {})) == 0 ? data.kubernetes_service_v1.stateful_set[each.key].metadata.name : kubernetes_service.self[each.key].metadata[0].name
+#    service_name = length(lookup(local.k8s_components_specs[each.key], "service", {})) == 0 ? data.kubernetes_service_v1.stateful_set[each.key].metadata.name : kubernetes_service.self[each.key].metadata[0].name
+#    service_name           = lookup(each.value.stateful_set.spec, "service_name", "")
     pod_management_policy  = lookup(each.value.stateful_set.spec, "pod_management_policy", null)
     replicas               = lookup(each.value.stateful_set.spec, "replicas", null)
     revision_history_limit = lookup(each.value.stateful_set.spec, "revision_history_limit", null)
@@ -950,7 +975,9 @@ resource "kubernetes_stateful_set" "self" {
         spec {
           access_modes       = lookup(volume_claim_template.value.spec, "access_modes", [])
           volume_name        = lookup(volume_claim_template.value.spec, "volume_name", null)
-          storage_class_name = lookup(volume_claim_template.value.spec, "storage_class_name", null)
+          storage_class_name = length(lookup(local.k8s_storage_class, each.key, {})) == 0 ? data.kubernetes_storage_class_v1.stateful_set[each.key].metadata.name : kubernetes_storage_class.self[each.key].metadata[0].name
+#          storage_class_name = length(lookup(local.k8s_components_specs[each.key], "service", {})) == 0 ? data.kubernetes_service_v1.stateful_set[each.key].metadata.name : kubernetes_service.self[each.key].metadata[0].name
+#          storage_class_name = lookup(volume_claim_template.value.spec, "storage_class_name", null) != null
           //noinspection HILUnresolvedReference
           resources {
             limits   = lookup(volume_claim_template.value.spec.resources, "limits", {})

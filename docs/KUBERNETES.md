@@ -104,7 +104,7 @@ components:
 
 A Service is an abstraction which defines a logical set of pods and a policy by which to access them - sometimes called a micro-service.
 
-The `K8S_service.tf` module is designed to create a service resource for a specified deployment or pod in an existing Kubrenetes cluster.
+The `K8S_service.tf` module is designed to create a service resource for a specified deployment or pod in an existing Kubernetes cluster.
 The parameters of the created service are described in the `service` block in `k8s.yml`, which includes the required metadata and spec parameters.  
 An example of a `service` block in `k8s.yml`:
 

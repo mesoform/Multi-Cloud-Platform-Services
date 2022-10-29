@@ -6,9 +6,15 @@ locals {
 
   k8s_components       = try(lookup(local.kubernetes, "components", {}), lookup(local.kubernetes, "components"))
   k8s_components_specs = lookup(local.k8s_components, "specs", {})
+  k8s_components_common = lookup(local.k8s_components, "common", {})
 
+  k8s_specs = { for app, adapters in local.k8s_components_specs :
+    app => { for adapter, specs in adapters : adapter =>
+        merge(lookup(local.k8s_components_common, adapter, {}), specs)
+    }
+  }
 
-  k8s_config_map = { for app, config in local.k8s_components_specs :
+  k8s_config_map = { for app, config in local.k8s_specs:
     app => { config_map : lookup(config, "config_map", null) }
     if lookup(config, "config_map", null) != null
   }
@@ -32,12 +38,12 @@ locals {
     })
   }
 
-  k8s_deployments = { for app, config in local.k8s_components_specs :
+  k8s_deployments = { for app, config in local.k8s_specs:
     app => { deployment : lookup(config, "deployment", null) }
     if lookup(config, "deployment", null) != null
   }
 
-  k8s_secret = { for app, config in local.k8s_components_specs :
+  k8s_secret = { for app, config in local.k8s_specs:
     app => { secret : lookup(config, "secret", null) }
     if lookup(config, "secret", null) != null
   }
@@ -52,53 +58,58 @@ locals {
     })
   }
 
-  k8s_services = { for app, config in local.k8s_components_specs :
+  k8s_services = { for app, config in local.k8s_specs:
     app => { service : lookup(config, "service", null) }
     if lookup(config, "service", null) != null
   }
 
-  k8s_pods = { for app, config in local.k8s_components_specs :
+  k8s_pods = { for app, config in local.k8s_specs:
     app => { pod : lookup(config, "pod", null) }
     if lookup(config, "pod", null) != null
   }
 
-  k8s_ingress = { for app, config in local.k8s_components_specs :
+  k8s_ingress = { for app, config in local.k8s_specs:
     app => { ingress : lookup(config, "ingress", null) }
     if lookup(config, "ingress", null) != null
   }
 
-  k8s_service_account = { for app, config in local.k8s_components_specs :
+  k8s_service_account = { for app, config in local.k8s_specs:
     app => { service_account : lookup(config, "service_account", null) }
     if lookup(config, "service_account", null) != null
   }
 
-  k8s_job = { for app, config in local.k8s_components_specs :
+  k8s_job = { for app, config in local.k8s_specs:
     app => { job : lookup(config, "job", null) }
     if lookup(config, "job", null) != null
   }
 
-  k8s_cron_job = { for app, config in local.k8s_components_specs :
+  k8s_cron_job = { for app, config in local.k8s_specs:
     app => { cron_job : lookup(config, "cron_job", null) }
     if lookup(config, "cron_job", null) != null
   }
 
-  k8s_pod_autoscaler = { for app, config in local.k8s_components_specs :
+  k8s_pod_autoscaler = { for app, config in local.k8s_specs:
     app => { pod_autoscaler : lookup(config, "pod_autoscaler", null) }
     if lookup(config, "pod_autoscaler", null) != null
   }
 
-  k8s_persistent_volume = { for app, config in local.k8s_components_specs :
+  k8s_persistent_volume = { for app, config in local.k8s_specs:
     app => { persistent_volume : lookup(config, "persistent_volume", null) }
     if lookup(config, "persistent_volume", null) != null
   }
 
-  k8s_persistent_volume_claim = { for app, config in local.k8s_components_specs :
+  k8s_persistent_volume_claim = { for app, config in local.k8s_specs:
     app => { persistent_volume_claim : lookup(config, "k8s_persistent_volume_claim", null) }
     if lookup(config, "persistent_volume_claim", null) != null
   }
 
-  k8s_stateful_set = { for app, config in local.k8s_components_specs :
+  k8s_stateful_set = { for app, config in local.k8s_specs:
     app => { stateful_set : lookup(config, "stateful_set", null) }
     if lookup(config, "stateful_set", null) != null
+  }
+
+  k8s_storage_class = { for app, config in local.k8s_specs:
+    app => { storage_class : lookup(config, "storage_class", null) }
+    if lookup(config, "storage_class", null) != null
   }
 }
