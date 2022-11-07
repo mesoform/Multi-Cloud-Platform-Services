@@ -13,3 +13,11 @@ output "gae_std" {
 output "cloudrun" {
   value = local.cloudrun
 }
+
+output "cloudrun_services" {
+  value = google_cloud_run_service.self[*].name
+}
+
+output "cloudrun_location_id" {
+  value = google_cloud_run_service.self[*].location
+}
