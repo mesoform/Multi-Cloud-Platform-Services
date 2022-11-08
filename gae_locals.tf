@@ -51,7 +51,7 @@ locals {
     for as, spec in local.as_all_specs:
       as => {
         build_dir : format("%s/%s", lookup(spec, "root_dir", as), lookup(spec, "build_dir", "build"))
-        manifest : format("../%s/%s/mmcf-manifest.json", lookup(spec, "root_dir", as), lookup(spec, "build_dir", "build"))
+        manifest : format("../%s/%s/mccf-manifest.json", lookup(spec, "root_dir", as), lookup(spec, "build_dir", "build"))
     }
   }
 
