@@ -1,5 +1,5 @@
 //noinspection HILUnresolvedReference
-resource "kubernetes_ingress_v1" "self" {
+resource "kubernetes_ingress" "self" {
   for_each = local.k8s_ingress
   wait_for_load_balancer = lookup(each.value.ingress, "wait_for_load_balancer", false)
   //noinspection HILUnresolvedReference
