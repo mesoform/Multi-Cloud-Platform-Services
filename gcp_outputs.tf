@@ -14,14 +14,6 @@ output "cloudrun" {
   value = local.cloudrun
 }
 
-output "cloudrun_project_id" {
-  value = local.cloudrun.project_id
-}
-
-output "cloudrun_location_id" {
-  value = local.cloudrun.location_id
-}
-
-output "cloudrun_services" {
+output "cloudrun_service" {
   value = values(local.cloudrun_specs).*.name
 }
