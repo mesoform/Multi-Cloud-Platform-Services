@@ -129,6 +129,7 @@ components:
           type: LoadBalancer
 
 ```
+> **Note**: `load_balancer_ip` and `external_ips` cannot be set using this module, as these attributes can make the services vulnerable to Man-In-The-Middle attacks
 
 ### pod
 
