@@ -129,7 +129,10 @@ components:
           type: LoadBalancer
 
 ```
-> **Note**: `load_balancer_ip` and `external_ips` cannot be set using this module, as these attributes can make the services vulnerable to Man-In-The-Middle attacks
+> **Note**: `load_balancer_ip` and `external_ips` cannot be set using this module, 
+> as these attributes can make the services vulnerable to Man-In-The-Middle attacks where an attacker is able to
+> create a ClusterIP service and set the spec.externalIPs field, to intercept traffic to that IP address. 
+> See [CVE-2020-8554](https://nvd.nist.gov/vuln/detail/CVE-2020-8554) for more details on this vulnerability
 
 ### pod
 
