@@ -9,10 +9,10 @@ resource "kubernetes_service" "self" {
   }
   spec {
     cluster_ip                  = lookup(each.value.service.spec, "cluster_ip", null)
-    external_ips                = lookup(each.value.service.spec, "external_ips", null)
+#    external_ips                = lookup(each.value.service.spec, "external_ips", null) # Removed due to man in the middle attack vulnerability
     external_name               = lookup(each.value.service.spec, "external_name", null)
     external_traffic_policy     = lookup(each.value.service.spec, "external_traffic_policy", null)
-    load_balancer_ip            = lookup(each.value.service.spec, "load_balancer_ip", null)
+#    load_balancer_ip            = lookup(each.value.service.spec, "load_balancer_ip", null) # Removed due to man in the middle attack vulnerability
     load_balancer_source_ranges = lookup(each.value.service.spec, "load_balancer_source_ranges", null)
     publish_not_ready_addresses = lookup(each.value.service.spec, "publish_not_ready_addresses", null)
     selector                    = lookup(each.value.service.spec, "selector", null)
