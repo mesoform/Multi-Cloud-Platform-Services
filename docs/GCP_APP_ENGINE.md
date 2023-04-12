@@ -171,7 +171,7 @@ location_id: "europe-west2"
 components:
   common:
     entrypoint: python main.py
-    runtime: python38
+    runtime: python311
     env: flex
     env_variables:
       GCP_PROJECT_ID: *project_id

@@ -5,7 +5,7 @@ flex_delay: "2m"
 components:
   common:
     entrypoint: python main.py
-    runtime: python38
+    runtime: python311
     env: flex
   specs:
     default:
