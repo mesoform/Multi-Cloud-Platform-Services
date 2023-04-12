@@ -32,12 +32,17 @@ jobs:
         with:
           terraform_wrapper: false
 
-      # Install gcloud sdk and set the service account
-      - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+      # Authenticate using workload identity federation
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
         with:
-          service_account_key: ${{secrets.GCP_SA_KEY}}
-          export_default_credentials: true
+          service_account: ${{secrets.GCP_SA_EMAIL}}
+          workload_identity_provider: ${{secrets.GCP_WORKLOAD_IDENTITY_PROVIDER}}
+          token_format: 'access_token'
+          access_token_lifetime: 1200s # 20 minutes
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
 
       - name: Set constant variables
         id: vars
