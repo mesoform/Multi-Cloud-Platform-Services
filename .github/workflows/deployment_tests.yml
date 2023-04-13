@@ -44,7 +44,8 @@ jobs:
           service_account: ${{secrets.GCP_SA_EMAIL}}
           workload_identity_provider: ${{secrets.GCP_WORKLOAD_IDENTITY_PROVIDER}}
           token_format: 'access_token'
-          access_token_lifetime: 1200s # 20 minutes
+          access_token_lifetime: 2400s # 40 minutes
+          export_environment_variables: false
 
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v1'
@@ -61,6 +62,7 @@ jobs:
           gcloud components install beta --quiet
           gcloud beta billing projects link ${{ steps.vars.outputs.GCP_PROJECT_ID }} --billing-account=${{secrets.GCP_BILLING_ID}}
           gcloud services enable cloudresourcemanager.googleapis.com
+          gcloud services enable iamcredentials.googleapis.com
           gcloud services enable cloudbuild.googleapis.com
           gcloud services enable container.googleapis.com
           gcloud services enable appengine.googleapis.com
@@ -75,10 +77,10 @@ jobs:
       - name: Create New SA
         run: |
           gcloud iam service-accounts create ga-deploy --description="Deploy with github actions" --display-name="Service account deploys through github action"
-          gcloud iam service-accounts keys create ./sa-key.json --iam-account ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com --no-user-output-enabled
+          gcloud iam service-accounts add-iam-policy-binding "serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --member="serviceAccount:${{secrets.GCP_SA_EMAIL}}" --role="roles/iam.serviceAccountTokenCreator" --no-user-output-enabled
           gcloud projects add-iam-policy-binding ${{ steps.vars.outputs.GCP_PROJECT_ID }} --member="serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --role="roles/owner" --no-user-output-enabled
           gcloud projects add-iam-policy-binding ${{ steps.vars.outputs.GCP_PROJECT_ID }} --member="serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --role="roles/artifactregistry.admin" --no-user-output-enabled
-          gcloud auth activate-service-account --key-file=sa-key.json
+          gcloud config set auth/impersonate_service_account ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com
 
       # Configure yaml files to contain relevant project info
       - name: Add project ID to GCP Files
