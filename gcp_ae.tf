@@ -113,7 +113,7 @@ resource "google_app_engine_flexible_app_version" "self" {
   runtime_api_version = lookup(each.value, "runtime_api_version", null)
   runtime_channel = lookup(each.value, "runtime_channel", null)
   runtime_main_executable_path = lookup(each.value, "runtime_main_executable_path", null)
-  serving_status = lookup(each.value, "serving_status", null)
+  serving_status = lookup(each.value, "serving_status", "SERVING")
   env_variables = local.env_variables[each.key]
 
   //noinspection HILUnresolvedReference

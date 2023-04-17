@@ -146,21 +146,22 @@ components:
 Below is a list of attributes which are available to both GAE standard and GAE flexible apps (this
  is not the same as components.common which is just a place to define defaults for all apps/services)
 
-| Key | Type | Required | Description | Default |
-|:----|:----:|:--------:|:------------|:-------:|
-| `env` | string | false | either `flex` or `standard` are the only values allowed here | `standard` |
-| `root_dir` | string | false | on-disk directory for the app/service. The value is relative to the project root where the `gcp_ae.yml` and `project.yml` files are located. If this is omitted, MCCF will expect files to be in a directory of the same name as the app. So, for the default app, you will either need a directory called `default` or set this value to the real name of the directory | spec key name (I.e. the name of the app/service) |
-| `runtime` | string | true | GAE available runtime. This differs between environment. Check the GAE docs for details | none |
-| `entrypoint` | string | true | command to run to start the app/service when deployed to GAE | none |
+| Key                   |  Type  | Required | Description                                                                                                                                                                                                                                                                                                                                                              |                     Default                      |
+|:----------------------|:------:|:--------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:------------------------------------------------:|
+| `env`                 | string |  false   | either `flex` or `standard` are the only values allowed here                                                                                                                                                                                                                                                                                                             |                    `standard`                    |
+| `root_dir`            | string |  false   | on-disk directory for the app/service. The value is relative to the project root where the `gcp_ae.yml` and `project.yml` files are located. If this is omitted, MCCF will expect files to be in a directory of the same name as the app. So, for the default app, you will either need a directory called `default` or set this value to the real name of the directory | spec key name (I.e. the name of the app/service) |
+| `runtime`             | string |   true   | Desired runtime, e.g. "python", "nodejs", "java"                                                                                                                                                                                                                                                                                                                         |                       none                       |
+| `runtime_api_version` | string |  false   | The version of the API in the given runtime environment (used by flexible environment)                                                                                                                                                                                                                                                                                   |                       none                       |
+| `entrypoint`          | string |   true   | command to run to start the app/service when deployed to GAE                                                                                                                                                                                                                                                                                                             |                       none                       |
 
 #### Google App Engine Standard component configuration  
 attributes specific to only GAE standard  
 
-| Key | Type | Required | Description | Default |
-|:----|:----:|:--------:|:------------|:-------:|
-| `static_files` | string | false | | none |
-| `static_files.path` | string | true within static_files context only | | none |
-| `upload_path_regex` | string |  true within static_files context only | | none |
+| Key                 |  Type  |               Required                | Description | Default |
+|:--------------------|:------:|:-------------------------------------:|:------------|:-------:|
+| `static_files`      | string |                 false                 |             |  none   |
+| `static_files.path` | string | true within static_files context only |             |  none   |
+| `upload_path_regex` | string | true within static_files context only |             |  none   |
 
 #### Google App Engine Flexible component Configuration  
 An example flexible app engine configuration:  

@@ -5,10 +5,12 @@ flex_delay: "2m"
 components:
   common:
     entrypoint: python main.py
-    runtime: python311
+    runtime: python
+    runtime_api_version: "3.10"
     env: flex
   specs:
     default:
+      version_id: v2
       manual_scaling:
         instance: 1
       deployment:
