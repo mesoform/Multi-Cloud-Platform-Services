@@ -59,6 +59,7 @@ jobs:
       - name: Setup GCP
         run: |
           gcloud projects create ${{ steps.vars.outputs.GCP_PROJECT_ID }} --folder=${{secrets.GCP_FOLDER_ID}} --set-as-default
+          unset CLOUDSDK_CORE_PROJECT
           gcloud components install beta --quiet
           gcloud beta billing projects link ${{ steps.vars.outputs.GCP_PROJECT_ID }} --billing-account=${{secrets.GCP_BILLING_ID}}
           gcloud services enable cloudresourcemanager.googleapis.com
@@ -75,6 +76,8 @@ jobs:
 
       # Create a new service account to be used for deployment
       - name: Create New SA
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           gcloud iam service-accounts create ga-deploy --description="Deploy with github actions" --display-name="Service account deploys through github action"
           gcloud iam service-accounts add-iam-policy-binding "serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --member="serviceAccount:${{secrets.GCP_SA_EMAIL}}" --role="roles/iam.serviceAccountTokenCreator" --no-user-output-enabled
@@ -93,6 +96,8 @@ jobs:
 
       # Deploy app image to Artifact Repository
       - name: Build App
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           cd GCP/app/build/helloworld
           timeout 420 bash -c 'while ! gcloud artifacts repositories create app-repo --repository-format=docker --location=europe-west2 --description="Repository for storing app"; do echo "Retrying in 30s" && sleep 30; done'
@@ -107,6 +112,8 @@ jobs:
 
       # Setup main.tf and deploy gcp modules. Also plan destroy but don't apply due to app engine issues.
       - name: Deploy GCP modules
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           cd GCP/terraform
           sleep 5m
@@ -120,6 +127,8 @@ jobs:
 
       # Install kubectl and create gke cluster
       - name: setup kubectl
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           gcloud components install kubectl
           gcloud container clusters create-auto mcpdeploytest-cluster --region=europe-west2
@@ -127,6 +136,8 @@ jobs:
 
       # Setup main.tf, deploy and destroy k8s
       - name: deploy k8s
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           cd k8s/terraform
           sed -i "s/gcs-bucket-name/${{ steps.vars.outputs.GCP_PROJECT_ID }}_bucket/" main.tf
