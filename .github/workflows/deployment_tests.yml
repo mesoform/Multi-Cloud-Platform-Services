@@ -79,7 +79,7 @@ jobs:
           CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           gcloud iam service-accounts create ga-deploy --description="Deploy with github actions" --display-name="Service account deploys through github action"
-          gcloud iam service-accounts add-iam-policy-binding "serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --member="serviceAccount:${{secrets.GCP_SA_EMAIL}}" --role="roles/iam.serviceAccountTokenCreator" --no-user-output-enabled
+          gcloud iam service-accounts add-iam-policy-binding "ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --member="serviceAccount:${{secrets.GCP_SA_EMAIL}}" --role="roles/iam.serviceAccountTokenCreator" --no-user-output-enabled
           gcloud projects add-iam-policy-binding ${{ steps.vars.outputs.GCP_PROJECT_ID }} --member="serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --role="roles/owner" --no-user-output-enabled
           gcloud projects add-iam-policy-binding ${{ steps.vars.outputs.GCP_PROJECT_ID }} --member="serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --role="roles/artifactregistry.admin" --no-user-output-enabled
           gcloud config set auth/impersonate_service_account ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com
