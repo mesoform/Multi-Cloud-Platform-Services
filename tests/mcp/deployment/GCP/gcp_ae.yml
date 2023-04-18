@@ -6,11 +6,11 @@ components:
   common:
     entrypoint: python main.py
     runtime: python
-    runtime_api_version: "3.10"
+    runtime_api_version: "3.11"
     env: flex
   specs:
     default:
-      version_id: v2
+      version_id: v1
       manual_scaling:
         instance: 1
       deployment:
