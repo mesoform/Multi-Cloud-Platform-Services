@@ -1,4 +1,4 @@
-resource "kubernetes_cron_job" "self" {
+resource "kubernetes_cron_job_v1" "self" {
   for_each = local.k8s_cron_job
 
   metadata {
@@ -17,7 +17,12 @@ resource "kubernetes_cron_job" "self" {
     suspend                       = lookup(each.value.cron_job.spec, "suspend", null)
 
     job_template {
-      metadata {}
+      metadata {
+        annotations   = try(each.value.cron_job.spec.metadata.job_template.metadata.annotations, {})
+        generate_name = try(lookup(each.value.cron_job.spec.metadata.job_template.metadata, "name", null) == null ? lookup(each.value.cron_job.spec.job_template.metadata, "generate_name", null) : null, null)
+        name          = try(each.value.cron_job.spec.metadata.job_template.metadata.name, null)
+        labels        = try(each.value.cron_job.spec.metadata.job_template.metadata.labels, {})
+      }
       spec {
         active_deadline_seconds    = lookup(each.value.cron_job.spec.job_template.spec, "active_deadline_seconds", null)
         backoff_limit              = lookup(each.value.cron_job.spec.job_template.spec, "backoff_limit", null)
@@ -40,7 +45,12 @@ resource "kubernetes_cron_job" "self" {
           }
         }
         template {
-          metadata {}
+          metadata {
+            annotations   = try(each.value.cron_job.spec.job_template.template.metadata.annotations, {})
+            generate_name = try(lookup(each.value.cron_job.spec.job_template.template.metadata, "name", null) == null ? lookup(each.value.cron_job.spec.job_template.template.metadata, "generate_name", null) : null, null)
+            name          = try(each.value.cron_job.spec.job_template.template.metadata.name, null)
+            labels        = try(each.value.cron_job.spec.job_template.template.metadata.labels, {})
+          }
           spec {
             active_deadline_seconds         = lookup(each.value.cron_job.spec.job_template.spec.template.spec, "active_deadline_seconds", null)
             automount_service_account_token = lookup(each.value.cron_job.spec.job_template.spec.template.spec, "automount_service_account_token", null)
