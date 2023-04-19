@@ -145,21 +145,25 @@ components:
         automount_service_account_token:
           true
     app_3:
+      service:
+        metadata:
+          name: service1
+        spec:
+          selector:
+            app: "test"
+          port:
+            - port: 8080
+              target_port: 80
+          type: LoadBalancer
       ingress:
         metadata:
           name: "example-ingress"
         spec:
-          backend:
-            service_name: "service"
-            service_port: 8080
-          rule:
-            host:
-            http:
-              paths:
-                - path: "/"
-                  backend:
-                    service_port: 8080
-                    service_name: "service"
+          default_backend:
+            service:
+              name: "service1"
+              port:
+                number: 8080
       stateful_set:
         metadata:
           name: "test-stateful-set"
@@ -169,6 +173,7 @@ components:
           selector:
             match_labels:
               app: "test"
+          service_name: service1
           template:
             metadata:
               name: "test-stateful-set"
@@ -180,16 +185,17 @@ components:
                 value: test
               container:
                 - name: "test-stateful-set"
-                  image: "nginx:1.7.8"
+                  image: "nginx:latest"
                   port:
-                    - container_port: 8080
+                    - container_port: 80
                   liveness_probe:
                     http_get:
-                      port: 80
+                      port: 8080
+                      path: /
                       http_header:
                         name: X-Custom-Header
                         value: Awesome
-                    initial_delay_seconds: 3
+                    initial_delay_seconds: 10
                     period_seconds: 3
 
     app_4:
@@ -212,7 +218,7 @@ components:
         spec:
           container:
             - name: "nginx-example-2"
-              image: "nginx:1.7.8"
+              image: "nginx:latest"
               port:
                 - container_port: 80
       cron_job:
