@@ -1,4 +1,4 @@
-resource "kubernetes_service" "self" {
+resource "kubernetes_service_v1" "self" {
   for_each = local.k8s_services
   metadata {
     annotations   = lookup(each.value.service.metadata, "annotations", {})
