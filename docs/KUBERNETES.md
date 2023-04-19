@@ -247,17 +247,21 @@ components:
         metadata:
           name: "example-ingress"
         spec:
-          backend:
-            service_name: "service"
-            service_port: 8080
+          default_backend:
+            resource:
+              kind: StorageBucket
+              apiGroup: k8s.examble.com
+              name: static-assets
           rule:
-            host:
+            host: "*.foo.com"
             http:
               paths:
-                - path: "/"
+                - path: "/foo"
                   backend:
-                    service_port: 8080
-                    service_name: "service"
+                    service:
+                        service_port: 8080
+                        service_name: "service"
+                    
 
 ```
 
