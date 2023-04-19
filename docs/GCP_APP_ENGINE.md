@@ -175,7 +175,7 @@ components:
   common:
     entrypoint: python main.py
     runtime: python
-    runtime_api_version: 3.11
+    runtime_api_version: "3.11"
     env: flex
     env_variables:
       GCP_PROJECT_ID: *project_id
