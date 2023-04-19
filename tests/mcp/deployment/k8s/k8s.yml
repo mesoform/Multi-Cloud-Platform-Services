@@ -99,7 +99,7 @@ components:
             - name: "tomcat-listener"
               port: 80
               target_port: 8080
-          type: ClusterIP
+          type: LoadBalancer
     app_2:
       pod_autoscaler:
         metadata:
@@ -154,7 +154,7 @@ components:
           port:
             - port: 8080
               target_port: 80
-          type: ClusterIP
+          type: LoadBalancer
       ingress:
         metadata:
           name: "example-ingress"
