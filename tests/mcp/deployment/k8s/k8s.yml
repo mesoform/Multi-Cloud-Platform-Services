@@ -133,13 +133,13 @@ components:
               image: "nginx:1.7.8"
               port:
                 - container_port: 80
-
+      secret:
+        metadata:
+          name: "pod-app-secret-file"
+        name: "pod-app-secret-file"
       service_account:
         metadata:
           name: "pod-app-service-account"
-        #image_pull_secret:
-        #  - name: pod-app-secret-file
-        #  - name: name_2
         secret:
           - name: "pod-app-secret-file"
         automount_service_account_token:
