@@ -1,7 +1,8 @@
 ## MCCF Kubernetes adapter
-### Information
-
-To use kubernetes modules the `KUBE_CONFIG_PATH` environment variable must be set to the path of the config file.  
+### Prerequisites
+To use this module there must be a running kubernetes cluster with a version of v1.23+.  
+For terraform to deploy kubernetes modules, the `KUBE_CONFIG_PATH` environment variable must be set to 
+the path of the kubernetes config file.  
 Run the following command to set the path to the default location:  
 Linux:
 ```bash
@@ -13,6 +14,7 @@ Windows Power Shell:
 ```
 NOTE: replace `~/.kube/config` with custom path if not using the default. Or set multiple paths with `KUBE_CONFIG_PATHS`
 
+### Information
 Kubernetes adapter for MCCF is designed to create Kubernetes resources in existing kubernetes clusters.
 YAML is used to describe the configuration of Kubernetes resources.
 The configuration is done within a `k8s.yml` file which defines the kubernetes resources to deploy for each service/application.
