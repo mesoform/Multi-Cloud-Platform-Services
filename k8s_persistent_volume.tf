@@ -1,4 +1,4 @@
-resource "kubernetes_persistent_volume" "self" {
+resource "kubernetes_persistent_volume_v1" "self" {
   for_each = local.k8s_persistent_volume
   metadata {
     name        = lookup(each.value.persistent_volume.metadata, "name", null )

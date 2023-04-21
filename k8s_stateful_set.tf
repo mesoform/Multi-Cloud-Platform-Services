@@ -1,5 +1,5 @@
 //noinspection HILUnresolvedReference
-resource "kubernetes_stateful_set" "self" {
+resource "kubernetes_stateful_set_v1" "self" {
   for_each         = local.k8s_stateful_set
   wait_for_rollout = lookup(each.value.stateful_set, "wait_fro_rollout", true)
   //noinspection HILUnresolvedReference

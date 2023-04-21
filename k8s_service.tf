@@ -1,4 +1,4 @@
-resource "kubernetes_service" "self" {
+resource "kubernetes_service_v1" "self" {
   for_each = local.k8s_services
   metadata {
     annotations   = lookup(each.value.service.metadata, "annotations", {})
@@ -21,13 +21,7 @@ resource "kubernetes_service" "self" {
     health_check_node_port      = lookup(each.value.service.spec, "health_check_node_port", null)
 
     dynamic "port" {
-      for_each = lookup(each.value.service.spec, "port", []) == [] ? [] : [for port in each.value.service.spec.port : {
-        name        = lookup(port, "name", null)
-        node_port   = lookup(port, "node_port", null)
-        port        = lookup(port, "port", null)
-        protocol    = lookup(port, "protocol", null)
-        target_port = lookup(port, "target_port", null)
-      }]
+      for_each = {for index, port in lookup(each.value.service.spec, "port", []): index => port }
       content {
         name        = lookup(port.value, "name", null)
         node_port   = lookup(port.value, "node_port", null)

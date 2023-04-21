@@ -1,5 +1,5 @@
 
-resource "kubernetes_deployment" "self" {
+resource "kubernetes_deployment_v1" "self" {
   for_each         = local.k8s_deployments
   wait_for_rollout = lookup(each.value.deployment, "wait_for_rollout", true)
   metadata {

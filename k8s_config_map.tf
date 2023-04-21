@@ -1,5 +1,5 @@
 
-resource "kubernetes_config_map" "self" {
+resource "kubernetes_config_map_v1" "self" {
   for_each = local.k8s_config_map
 
   metadata {

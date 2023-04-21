@@ -1,4 +1,4 @@
-resource "kubernetes_job" "self" {
+resource "kubernetes_job_v1" "self" {
   for_each = local.k8s_job
 
   metadata {

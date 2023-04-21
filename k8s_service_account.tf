@@ -1,4 +1,4 @@
-resource "kubernetes_service_account" "self" {
+resource "kubernetes_service_account_v1" "self" {
   for_each = local.k8s_service_account
 
   metadata {

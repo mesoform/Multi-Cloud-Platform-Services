@@ -1,4 +1,4 @@
-resource "kubernetes_horizontal_pod_autoscaler" "self" {
+resource "kubernetes_horizontal_pod_autoscaler_v2" "self" {
   for_each = local.k8s_pod_autoscaler
 
   metadata {
