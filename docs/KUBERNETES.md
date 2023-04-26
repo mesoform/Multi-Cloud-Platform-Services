@@ -1,7 +1,8 @@
 ## MCCF Kubernetes adapter
-### Information
-
-To use kubernetes modules the `KUBE_CONFIG_PATH` environment variable must be set to the path of the config file.  
+### Prerequisites
+To use this module there must be a running kubernetes cluster with a version of v1.23+.  
+For terraform to deploy kubernetes modules, the `KUBE_CONFIG_PATH` environment variable must be set to 
+the path of the kubernetes config file.  
 Run the following command to set the path to the default location:  
 Linux:
 ```bash
@@ -13,6 +14,7 @@ Windows Power Shell:
 ```
 NOTE: replace `~/.kube/config` with custom path if not using the default. Or set multiple paths with `KUBE_CONFIG_PATHS`
 
+### Information
 Kubernetes adapter for MCCF is designed to create Kubernetes resources in existing kubernetes clusters.
 YAML is used to describe the configuration of Kubernetes resources.
 The configuration is done within a `k8s.yml` file which defines the kubernetes resources to deploy for each service/application.
@@ -129,6 +131,10 @@ components:
           type: LoadBalancer
 
 ```
+> **Note**: `load_balancer_ip` and `external_ips` cannot be set using this module, 
+> as these attributes can make the services vulnerable to Man-In-The-Middle attacks where an attacker is able to
+> create a ClusterIP service and set the spec.externalIPs field, to intercept traffic to that IP address. 
+> See [CVE-2020-8554](https://nvd.nist.gov/vuln/detail/CVE-2020-8554) for more details on this vulnerability
 
 ### pod
 
@@ -243,17 +249,21 @@ components:
         metadata:
           name: "example-ingress"
         spec:
-          backend:
-            service_name: "service"
-            service_port: 8080
+          default_backend:
+            resource:
+              kind: StorageBucket
+              apiGroup: k8s.examble.com
+              name: static-assets
           rule:
-            host:
+            host: "*.foo.com"
             http:
               paths:
-                - path: "/"
+                - path: "/foo"
                   backend:
-                    service_port: 8080
-                    service_name: "service"
+                    service:
+                        service_port: 8080
+                        service_name: "service"
+                    
 
 ```
 

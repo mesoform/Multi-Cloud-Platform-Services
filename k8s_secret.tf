@@ -1,4 +1,4 @@
-resource "kubernetes_secret" "self" {
+resource "kubernetes_secret_v1" "self" {
   for_each = local.k8s_secret
 
   metadata {

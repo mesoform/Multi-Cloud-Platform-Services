@@ -1,4 +1,4 @@
-resource "kubernetes_pod" "self" {
+resource "kubernetes_pod_v1" "self" {
   for_each = local.k8s_pods
   metadata {
     annotations   = lookup(each.value.pod.metadata, "annotations", {})

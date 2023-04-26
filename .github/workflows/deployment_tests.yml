@@ -6,6 +6,11 @@ on:
       - main
       - develop
 
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
+
 jobs:
   ############################# Deployment Tests for MCP modules #####################################################
   MCP-tests:
@@ -32,12 +37,17 @@ jobs:
         with:
           terraform_wrapper: false
 
-      # Install gcloud sdk and set the service account
-      - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0
+      # Authenticate using workload identity federation
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
         with:
-          service_account_key: ${{secrets.GCP_SA_KEY}}
-          export_default_credentials: true
+          service_account: ${{secrets.GCP_SA_EMAIL}}
+          workload_identity_provider: ${{secrets.GCP_WORKLOAD_IDENTITY_PROVIDER}}
+          token_format: 'access_token'
+          access_token_lifetime: 2400s # 40 minutes
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v1'
 
       - name: Set constant variables
         id: vars
@@ -48,9 +58,11 @@ jobs:
       - name: Setup GCP
         run: |
           gcloud projects create ${{ steps.vars.outputs.GCP_PROJECT_ID }} --folder=${{secrets.GCP_FOLDER_ID}} --set-as-default
+          unset CLOUDSDK_CORE_PROJECT
           gcloud components install beta --quiet
           gcloud beta billing projects link ${{ steps.vars.outputs.GCP_PROJECT_ID }} --billing-account=${{secrets.GCP_BILLING_ID}}
           gcloud services enable cloudresourcemanager.googleapis.com
+          gcloud services enable iamcredentials.googleapis.com
           gcloud services enable cloudbuild.googleapis.com
           gcloud services enable container.googleapis.com
           gcloud services enable appengine.googleapis.com
@@ -63,12 +75,14 @@ jobs:
 
       # Create a new service account to be used for deployment
       - name: Create New SA
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           gcloud iam service-accounts create ga-deploy --description="Deploy with github actions" --display-name="Service account deploys through github action"
-          gcloud iam service-accounts keys create ./sa-key.json --iam-account ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com --no-user-output-enabled
+          gcloud iam service-accounts add-iam-policy-binding "ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --member="serviceAccount:${{secrets.GCP_SA_EMAIL}}" --role="roles/iam.serviceAccountTokenCreator" --no-user-output-enabled
           gcloud projects add-iam-policy-binding ${{ steps.vars.outputs.GCP_PROJECT_ID }} --member="serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --role="roles/owner" --no-user-output-enabled
           gcloud projects add-iam-policy-binding ${{ steps.vars.outputs.GCP_PROJECT_ID }} --member="serviceAccount:ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com" --role="roles/artifactregistry.admin" --no-user-output-enabled
-          gcloud auth activate-service-account --key-file=sa-key.json
+          gcloud config set auth/impersonate_service_account ga-deploy@${{ steps.vars.outputs.GCP_PROJECT_ID }}.iam.gserviceaccount.com
 
       # Configure yaml files to contain relevant project info
       - name: Add project ID to GCP Files
@@ -81,6 +95,8 @@ jobs:
 
       # Deploy app image to Artifact Repository
       - name: Build App
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           cd GCP/app/build/helloworld
           timeout 420 bash -c 'while ! gcloud artifacts repositories create app-repo --repository-format=docker --location=europe-west2 --description="Repository for storing app"; do echo "Retrying in 30s" && sleep 30; done'
@@ -95,6 +111,8 @@ jobs:
 
       # Setup main.tf and deploy gcp modules. Also plan destroy but don't apply due to app engine issues.
       - name: Deploy GCP modules
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           cd GCP/terraform
           sleep 5m
@@ -102,12 +120,15 @@ jobs:
           sed -i "s/source-path/..\/..\/..\/..\/..\//" main.tf
           cat main.tf
           terraform init
+          terraform workspace new gcp-modules
           terraform plan -out="./plan.tfplan"
           terraform apply plan.tfplan
           terraform plan -destroy -out="./destroy.tfplan"
 
       # Install kubectl and create gke cluster
       - name: setup kubectl
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           gcloud components install kubectl
           gcloud container clusters create-auto mcpdeploytest-cluster --region=europe-west2
@@ -115,12 +136,15 @@ jobs:
 
       # Setup main.tf, deploy and destroy k8s
       - name: deploy k8s
+        env:
+          CLOUDSDK_CORE_PROJECT: ${{ steps.vars.outputs.GCP_PROJECT_ID }}
         run: |
           cd k8s/terraform
           sed -i "s/gcs-bucket-name/${{ steps.vars.outputs.GCP_PROJECT_ID }}_bucket/" main.tf
           sed -i "s/source-path/..\/..\/..\/..\/..\//" main.tf
           cat main.tf
           terraform init
+          terraform workspace new k8s
           terraform plan -out="./plan.tfplan"
           terraform apply plan.tfplan
           terraform plan -destroy -out="./destroy.tfplan"

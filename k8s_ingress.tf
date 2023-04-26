@@ -1,5 +1,5 @@
 //noinspection HILUnresolvedReference
-resource "kubernetes_ingress" "self" {
+resource "kubernetes_ingress_v1" "self" {
   for_each = local.k8s_ingress
   wait_for_load_balancer = lookup(each.value.ingress, "wait_for_load_balancer", false)
   //noinspection HILUnresolvedReference
@@ -11,12 +11,34 @@ resource "kubernetes_ingress" "self" {
     annotations   = lookup(each.value.ingress.metadata, "annotations", {})
   }
   spec {
+    ingress_class_name = lookup(each.value.ingress.spec, "ingress_class_name", null)
     //noinspection HILUnresolvedReference
-    dynamic "backend" {
-      for_each = lookup(each.value.ingress.spec, "backend", null) != null ? {backend : each.value.ingress.spec.backend} : {}
+    dynamic "default_backend" {
+      for_each = lookup(each.value.ingress.spec, "default_backend", null) != null ? {default_backend : each.value.ingress.spec.default_backend} : {}
       content{
-        service_name = lookup(backend.value, "service_name", null)
-        service_port = lookup(backend.value, "service_port", null)
+        //noinspection HILUnresolvedReference
+        dynamic resource {
+          for_each = lookup(default_backend.value, "resource", null) != null ? {resource : default_backend.value.resource} : {}
+          content {
+            kind = lookup(resource.value, "kind", null)
+            name = lookup(resource.value, "name", null)
+            api_group = lookup(resource.value, "api_group", null)
+          }
+        }
+        //noinspection HILUnresolvedReference
+        dynamic service {
+          for_each = lookup(default_backend.value, "service", null) != null ? {service : default_backend.value.service} : {}
+          content {
+            name = lookup(service.value, "name", null)
+            dynamic port {
+              for_each = lookup(service.value, "port", null) != null ? {port: service.value.port} : {}
+              content {
+                name = lookup(port.value, "name", null)
+                number = lookup(port.value, "number", null)
+              }
+            }
+          }
+        }
       }
     }
 
@@ -31,11 +53,32 @@ resource "kubernetes_ingress" "self" {
           dynamic "path" {
             for_each = lookup(rule.value.http, "paths")
             content {
-              path = lookup(path.value, "path", "")
-              //noinspection HILUnresolvedReference
-              backend{
-                service_name = lookup(path.value.backend, "service_name", null)
-                service_port = lookup(path.value.backend, "service_port", null)
+              path = path.value.path
+              path_type = lookup(path.value, "path_type", null)
+              backend {
+                //noinspection HILUnresolvedReference
+                dynamic resource {
+                  for_each = lookup(path.value.backend, "resource", null) != null ? {resource : path.value.backend.resource} : {}
+                  content {
+                    kind = lookup(resource.value, "kind", null)
+                    name = lookup(resource.value, "name", null)
+                    api_group = lookup(resource.value, "api_group", null)
+                  }
+                }
+                //noinspection HILUnresolvedReference
+                dynamic service {
+                  for_each = lookup(path.value.backend, "service", null) != null ? {service : path.value.backende.service} : {}
+                  content {
+                    name = lookup(service.value, "name", null)
+                    dynamic port {
+                      for_each = lookup(service.value, "port", null) != null ? {port: service.value.port} : {}
+                      content {
+                        name = lookup(port.value, "name", null)
+                        number = lookup(port.value, "number", null)
+                      }
+                    }
+                  }
+                }
               }
             }
           }

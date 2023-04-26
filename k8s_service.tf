@@ -1,4 +1,4 @@
-resource "kubernetes_service" "self" {
+resource "kubernetes_service_v1" "self" {
   for_each = local.k8s_services
   metadata {
     annotations   = lookup(each.value.service.metadata, "annotations", {})
@@ -9,10 +9,10 @@ resource "kubernetes_service" "self" {
   }
   spec {
     cluster_ip                  = lookup(each.value.service.spec, "cluster_ip", null)
-    external_ips                = lookup(each.value.service.spec, "external_ips", null)
+#    external_ips                = lookup(each.value.service.spec, "external_ips", null) # Removed due to man in the middle attack vulnerability
     external_name               = lookup(each.value.service.spec, "external_name", null)
     external_traffic_policy     = lookup(each.value.service.spec, "external_traffic_policy", null)
-    load_balancer_ip            = lookup(each.value.service.spec, "load_balancer_ip", null)
+#    load_balancer_ip            = lookup(each.value.service.spec, "load_balancer_ip", null) # Removed due to man in the middle attack vulnerability
     load_balancer_source_ranges = lookup(each.value.service.spec, "load_balancer_source_ranges", null)
     publish_not_ready_addresses = lookup(each.value.service.spec, "publish_not_ready_addresses", null)
     selector                    = lookup(each.value.service.spec, "selector", null)
@@ -21,13 +21,7 @@ resource "kubernetes_service" "self" {
     health_check_node_port      = lookup(each.value.service.spec, "health_check_node_port", null)
 
     dynamic "port" {
-      for_each = lookup(each.value.service.spec, "port", []) == [] ? [] : [for port in each.value.service.spec.port : {
-        name        = lookup(port, "name", null)
-        node_port   = lookup(port, "node_port", null)
-        port        = lookup(port, "port", null)
-        protocol    = lookup(port, "protocol", null)
-        target_port = lookup(port, "target_port", null)
-      }]
+      for_each = {for index, port in lookup(each.value.service.spec, "port", []): index => port }
       content {
         name        = lookup(port.value, "name", null)
         node_port   = lookup(port.value, "node_port", null)

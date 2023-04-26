@@ -1,4 +1,4 @@
-resource "kubernetes_persistent_volume_claim" "self" {
+resource "kubernetes_persistent_volume_claim_v1" "self" {
   for_each = local.k8s_persistent_volume_claim
   metadata {
     annotations   = lookup(each.value.persistent_volume_claim.metadata, "annotations", null)
@@ -9,7 +9,7 @@ resource "kubernetes_persistent_volume_claim" "self" {
   }
   spec {
     access_modes       = lookup(each.value.persistent_volume_claim.spec, "access_modes", [] )
-    volume_name        = lookup(local.k8s_persistent_volume, each.key, null) == null ? lookup(each.value.persistent_volume_claim.spec, "volume_name", null ) : kubernetes_persistent_volume.self[each.key].metadata.0.name
+    volume_name        = lookup(local.k8s_persistent_volume, each.key, null) == null ? lookup(each.value.persistent_volume_claim.spec, "volume_name", null ) : kubernetes_persistent_volume_v1.self[each.key].metadata.0.name
     storage_class_name = lookup(each.value.persistent_volume_claim.spec, "storage_class_name", null )
     //noinspection HILUnresolvedReference
     resources {

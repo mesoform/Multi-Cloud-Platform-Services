@@ -33,6 +33,8 @@ serverless/container workloads to a set of serverless/container platforms. Examp
 
 ## Adapter example usage
 ### Google Cloud Platform 
+There are adapters for deploying Cloud Run Services and App Engine Applications to a Google Cloud project. 
+See documentation for more details
 * [Google App Engine](docs/GCP_APP_ENGINE.md)  
 * [Google Cloud Run](docs/GCP_CLOUDRUN.md)  
 
@@ -76,6 +78,7 @@ components:
 ```
 
 ### Kubernetes
+Kubernetes resources can be deployed to Kubernetes v1.23+ clusters, see documentation for more details
 * [Kubernetes adapter documentation](docs/KUBERNETES.md)
 
 An example configuration:
