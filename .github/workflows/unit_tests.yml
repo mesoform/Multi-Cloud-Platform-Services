@@ -11,6 +11,10 @@ on:
       - main
       - develop
 
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
 jobs:
   unit-tests:
     name: 'Unit Tests'
@@ -35,12 +39,17 @@ jobs:
       with:
         terraform_wrapper: false
 
-    # Install gcoud sdk and set the service account
-    - name: Setup Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
       with:
-        service_account_key: ${{secrets.GCP_SA_KEY}}
-        export_default_credentials: true
+        service_account: ${{secrets.GCP_SA_EMAIL}}
+        workload_identity_provider: ${{secrets.GCP_WORKLOAD_IDENTITY_PROVIDER}}
+        token_format: 'access_token'
+        access_token_lifetime: 2400s # 20 minutes
+
+    # Install gcloud sdk
+    - name: Setup Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
 
     # Run unit tests in MCP module
     - name: Run MCP unit tests
@@ -70,4 +79,3 @@ jobs:
         done
         echo ${MESSAGE^^}
         exit $EXIT_CODE
-
