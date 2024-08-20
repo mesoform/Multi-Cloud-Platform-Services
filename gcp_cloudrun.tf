@@ -41,7 +41,7 @@ resource google_cloud_run_service self {
         }
         //noinspection HILUnresolvedReference
         dynamic "resources" {
-          for_each = lookup(each.value.template.containers, "resources", {})
+          for_each = lookup(each.value.template.containers, "resources", null) == null ? {} : { resources : each.value.template.containers.resources }
           content {
             limits   = lookup(resources.value, "limits", null)
             requests = lookup(resources.value, "requests", null)
