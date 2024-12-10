@@ -6,7 +6,7 @@ components:
   common:
     entrypoint: python main.py
     runtime: python
-    runtime_api_version: "3.11"
+    runtime_api_version: "3.9"
     env: flex
   specs:
     default:
