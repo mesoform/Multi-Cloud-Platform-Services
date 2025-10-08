@@ -61,22 +61,6 @@ resource google_cloud_run_service self {
           }
         }
 
-        dynamic "readiness_probe" {
-          for_each = lookup(each.value.template.containers, "readiness_probe", null) == null ? [] : ["readiness_probe"]
-          content {
-            initial_delay_seconds = lookup(each.value.template.containers.readiness_probe, "initial_delay_seconds", null)
-            timeout_seconds       = lookup(each.value.template.containers.readiness_probe, "timeout_seconds", null)
-            period_seconds        = lookup(each.value.template.containers.readiness_probe, "period_seconds", null)
-            failure_threshold     = lookup(each.value.template.containers.readiness_probe, "failure_threshold", null)
-            success_threshold     = lookup(each.value.template.containers.readiness_probe, "success_threshold", null)
-
-            http_get {
-              path = lookup(each.value.template.containers.readiness_probe.http_get, "path", null)
-              port = lookup(each.value.template.containers.readiness_probe.http_get, "port", null)
-            }
-          }
-        }
-
         //noinspection HILUnresolvedReference
         dynamic "ports" {
           for_each = lookup(each.value.template.containers, "ports", {})
