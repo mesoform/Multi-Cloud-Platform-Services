@@ -30,6 +30,43 @@ resource google_cloud_run_service self {
         image   = each.value.template.containers.image
         args    = lookup(each.value.template.containers, "args", null)
         command = lookup(each.value.template.containers, "command", null)
+
+        dynamic "startup_probe" {
+          for_each = lookup(each.value.template.containers, "startup_probe", null) == null ? {} : { startup_probe : each.value.template.containers.startup_probe }
+          content {
+            initial_delay_seconds = lookup(startup_probe.value, "initial_delay_seconds", null)
+            timeout_seconds       = lookup(startup_probe.value, "timeout_seconds", null)
+            period_seconds        = lookup(startup_probe.value, "period_seconds", null)
+            failure_threshold     = lookup(startup_probe.value, "failure_threshold", null)
+
+            dynamic "http_get" {
+              for_each = lookup(startup_probe.value, "http_get", null) == null ? {} : { http_get : startup_probe.value.http_get }
+              content {
+                path   = lookup(http_get.value, "path", null)
+                port   = lookup(http_get.value, "port", null)
+              }
+            }
+          }
+        }
+
+        dynamic "liveness_probe" {
+          for_each = lookup(each.value.template.containers, "liveness_probe", null) == null ? {} : { liveness_probe : each.value.template.containers.liveness_probe }
+          content {
+            initial_delay_seconds = lookup(liveness_probe.value, "initial_delay_seconds", null)
+            timeout_seconds       = lookup(liveness_probe.value, "timeout_seconds", null)
+            period_seconds        = lookup(liveness_probe.value, "period_seconds", null)
+            failure_threshold     = lookup(liveness_probe.value, "failure_threshold", null)
+
+            dynamic "http_get" {
+              for_each = lookup(liveness_probe.value, "http_get", null) == null ? {} : { http_get : liveness_probe.value.http_get }
+              content {
+                path   = lookup(http_get.value, "path", null)
+                port   = lookup(http_get.value, "port", null)
+              }
+            }
+          }
+        }
+
         //noinspection HILUnresolvedReference
         dynamic "ports" {
           for_each = lookup(each.value.template.containers, "ports", {})
