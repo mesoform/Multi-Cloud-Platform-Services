@@ -5,7 +5,7 @@ flex_delay: "2m"
 components:
   common:
     entrypoint: python main.py
-    runtime: python
+    runtime: python312
     runtime_api_version: "3.12"
     env: flex
   specs:
@@ -16,4 +16,3 @@ components:
       deployment:
         container:
           image: <image_uri>
-

@@ -1,5 +1,5 @@
 provider "kubernetes" {
-  host                   = "dummy-host"
+  host                   = "https://dummy-gcp-host"
   token                  = "dummy-token"
   cluster_ca_certificate = "dummy-cert"
   insecure               = true
