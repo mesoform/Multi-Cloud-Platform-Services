@@ -6,10 +6,8 @@ terraform{
 }
 
 provider "kubernetes" {
-  host                   = "https://dummy-gcp-host"
-  token                  = "dummy-token"
-  cluster_ca_certificate = "dummy-cert"
-  insecure               = true
+  config_path = "~/.kube/config"
+  alias       = "gke"
 }
 
 module "mcp" {
