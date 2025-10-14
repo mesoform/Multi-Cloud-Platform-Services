@@ -1,19 +1,18 @@
-project_id: &project_id <project_id>
-create_google_project: false
-location_id: "europe-west2"
-flex_delay: "2m"
-components:
-  common:
-    entrypoint: python main.py
-    runtime: python
-    runtime_api_version: "3.11"
-    env: flex
-  specs:
-    default:
-      version_id: v1
-      manual_scaling:
-        instance: 1
-      deployment:
-        container:
-          image: <image_uri>
-
+#project_id: &project_id <project_id>
+#create_google_project: false
+#location_id: "europe-west2"
+#flex_delay: "2m"
+#components:
+#  common:
+#    entrypoint: python main.py
+#    runtime: python313
+#    runtime_api_version: "3.13"
+#    env: flex
+#  specs:
+#    default:
+#      version_id: v1
+#      manual_scaling:
+#        instance: 1
+#      deployment:
+#        container:
+#          image: <image_uri>
